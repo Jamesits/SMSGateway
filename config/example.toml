@@ -1,0 +1,58 @@
+## general config
+[general]
+# log level
+# 1: debug; 2: info; 3: warning
+log_level = 2
+
+## SMTP listener
+[[listener.SMTP]]
+ip = "0.0.0.0"
+port = 25
+
+## you can define multiple listeners of the same kind like this
+[[listener.SMTP]]
+ip = "::"
+port = 25
+
+## SMS Server for Dbltek GoIP devices
+[[listener.DbltekSMSServer]]
+ip = "0.0.0.0"
+port = 44444
+
+## devices definition
+[[device]]
+vendor = "dbltek"
+model = "GoIP8"
+connector = "smtp"
+ip = "100.97.1.7"
+match_mode = "equal" # modes to match username and password: "equal", "wildcard" and "regex"
+username = "test-goip@example.com"
+password = "114514"
+timezone = +8
+route = [
+    "smtp1"
+]
+
+[[device]]
+vendor = "dbltek"
+model = "GoIP8"
+connector = "dbltek_sms_server"
+ip = "192.168.1.101"
+match_mode = "equal"
+username = "goip-1"
+password = "goip"
+timezone = +8
+route = [
+    "smtp1"
+]
+
+## routing destination definition
+[[route]]
+alias = "smtp1"
+connector = "smtp"
+server = "smtp.example.com"
+port = 25
+username = "test@example.com"
+password = "114514"
+from_address = "test@example.com"
+to_address = "test@example.com"

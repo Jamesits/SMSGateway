@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from time import sleep
+import sys
 from . import config
 from . import smtp_server
 from .DbltekSMSServer import DbltekSMSServer
@@ -19,20 +20,24 @@ def main():
     # config logging
     logging.basicConfig(level=config.user_config['general']['log_level'] * 10)
 
+    if "listener" not in config.user_config:
+        logger.error("No listener defined, quitting")
+        sys.exit(-1)
+
     # start SMTP listener
-    if "SMTP" in config.user_config:
-        for ip in config.user_config["SMTP"]["listen"]:
-            logger.info(f"Starting SMTP listener on [{ip}]:{config.user_config['SMTP']['port']}")
-            new_listener = smtp_server.SMTPMessageGateway(ip, config.user_config["SMTP"]["port"])
+    if "SMTP" in config.user_config["listener"]:
+        for listener in config.user_config["listener"]["SMTP"]:
+            logger.info(f"Starting SMTP listener on  [{listener['ip']}]:{listener['port']}")
+            new_listener = smtp_server.SMTPMessageGateway(listener['ip'], listener['port'])
             new_listener.start()
             smtp_listeners.append(new_listener)
 
-    if "DbltekSMSServer" in config.user_config:
-    for ip in config.user_config["DbltekSMSServer"]["listen"]:
-        logger.info(f"Starting DbltekSMSServer on [{ip}]:{config.user_config['DbltekSMSServer']['port']}")
-        new_listener = DbltekSMSServer(ip, config.user_config["DbltekSMSServer"]["port"])
-        new_listener.start()
-        DbltekSMSServer_listeners.append(new_listener)
+    if "DbltekSMSServer" in config.user_config["listener"]:
+        for listener in config.user_config["listener"]["DbltekSMSServer"]:
+            logger.info(f"Starting DbltekSMSServer on [{listener['ip']}]:{listener['port']}")
+            new_listener = DbltekSMSServer(listener['ip'], listener['port'])
+            new_listener.start()
+            DbltekSMSServer_listeners.append(new_listener)
 
     # start event loop
     try:
