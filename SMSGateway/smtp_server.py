@@ -24,6 +24,9 @@ class NewSMTP(SMTP):
                     second_line = second_line.rstrip(b'\r\n').decode('ascii')
                     password = base64.b64decode(second_line).decode('ascii')
                     logger.debug(f"AUTH PLAIN with password \"{password}\"")
+                    self.session.authenticated = True
+                    self.session.auth_method = "PLAIN"
+                    self.session.auth_password = password
                 except UnicodeDecodeError:
                     yield from self.push('500 Error: Challenge must be ASCII')
                     return
@@ -31,6 +34,9 @@ class NewSMTP(SMTP):
             else: # The user provided a password in the same line
                 password = base64.b64decode(argv[1]).decode('ascii')
                 logger.debug(f"AUTH PLAIN with password \"{password}\"")
+                self.session.authenticated = True
+                self.session.auth_method = "PLAIN"
+                self.session.auth_password = password
                 yield from self.push('235 Authentication successful')
         elif argv[0] == 'LOGIN': # username + password auth
             yield from self.push('334 VXNlcm5hbWU6') # ask for username
@@ -38,6 +44,8 @@ class NewSMTP(SMTP):
                 second_line = yield from self._reader.readline()
                 username = base64.b64decode(second_line).decode('ascii')
                 logger.debug(f"AUTH LOGIN with username \"{username}\"")
+                self.session.auth_method = "LOGIN"
+                self.session.auth_username = username
             except (ConnectionResetError, asyncio.CancelledError) as error:
                 logger.error(error)
             yield from self.push('334 UGFzc3dvcmQ6') # ask for password
@@ -45,20 +53,24 @@ class NewSMTP(SMTP):
                 second_line = yield from self._reader.readline()
                 password = base64.b64decode(second_line).decode('ascii')
                 logger.debug(f"AUTH LOGIN with password \"{password}\"")
+                self.session.authenticated = True
+                self.session.auth_password = password
             except (ConnectionResetError, asyncio.CancelledError) as error:
                 logger.error(error)
             yield from self.push('235 Authentication successful')
-        elif argv[0] == 'CRAM-MD5': # challenge-response auth
-            yield from self.push(f'334 {base64.b64encode("114514")}') # send a challenge
-            try:
-                second_line = yield from self._reader.readline()
-                ret = base64.b64decode(second_line)
-                logger.debug(f"AUTH CRAM-MD5 with result \"{ret}\"")
-            except (ConnectionResetError, asyncio.CancelledError) as error:
-                logger.error(error)
-            yield from self.push('235 Authentication successful')
+        # elif argv[0] == 'CRAM-MD5': # challenge-response auth
+        #     yield from self.push(f'334 {base64.b64encode("114514")}') # send a challenge
+        #     try:
+        #         second_line = yield from self._reader.readline()
+        #         ret = base64.b64decode(second_line)
+        #         logger.debug(f"AUTH CRAM-MD5 with result \"{ret}\"")
+        #         self.authenticated = True
+        #         self.auth_method = "CRAM-MD5"
+        #     except (ConnectionResetError, asyncio.CancelledError) as error:
+        #         logger.error(error)
+        #     yield from self.push('235 Authentication successful')
         else:
-            yield from self.push('501 Syntax: AUTH PLAIN|LOGIN|CRAM-MD5')
+            yield from self.push('501 Syntax: AUTH LOGIN')
             return
 
 class SMTPMessageGatewayController(Controller):
