@@ -3,9 +3,11 @@ import logging
 from time import sleep
 from . import config
 from . import smtp_server
+from .DbltekSMSServer import DbltekSMSServer
 
 logger = logging.getLogger(__name__)
 smtp_listeners = []
+DbltekSMSServer_listeners = []
 
 def main():
     logger.info("Starting")
@@ -18,11 +20,17 @@ def main():
     logging.basicConfig(level=config.user_config['general']['log_level'] * 10)
 
     # start SMTP listener
-    for ip in config.user_config["general"]["listen"]:
-        logger.info(f"Starting SMTP listener on [{ip}]:{config.user_config['general']['smtp_port']}")
-        new_listener = smtp_server.SMTPMessageGateway(ip, config.user_config["general"]["smtp_port"])
+    for ip in config.user_config["SMTP"]["listen"]:
+        logger.info(f"Starting SMTP listener on [{ip}]:{config.user_config['SMTP']['port']}")
+        new_listener = smtp_server.SMTPMessageGateway(ip, config.user_config["SMTP"]["port"])
         new_listener.start()
         smtp_listeners.append(new_listener)
+
+    for ip in config.user_config["DbltekSMSServer"]["listen"]:
+        logger.info(f"Starting DbltekSMSServer on [{ip}]:{config.user_config['DbltekSMSServer']['port']}")
+        new_listener = DbltekSMSServer(ip, config.user_config["DbltekSMSServer"]["port"])
+        new_listener.start()
+        DbltekSMSServer_listeners.append(new_listener)
 
     # start event loop
     try:
