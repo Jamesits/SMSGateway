@@ -15,7 +15,6 @@ def main():
     #print(config.user_config)
 
     # config logging
-    # TODO: user configurable
     logging.basicConfig(level=config.user_config['general']['log_level'] * 10)
 
     # start SMTP listener
