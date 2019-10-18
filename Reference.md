@@ -28,3 +28,7 @@
 
 - GoIP SMS interface documentation
   <br><http://hybertone.com.ua/goip_sms_Interface_en.pdf>
+
+## GitHub related-project
+
+- <https://github.com/antirek/goip-awesome>
