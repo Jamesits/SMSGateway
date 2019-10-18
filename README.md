@@ -10,7 +10,6 @@ At project root:
 python3 -m SMSGateway
 ```
 
-## Reference
+## Supported OEM
 
-- Dbltek
-  <br><SMSGateway/DbltekSMSServer/README.md>
+- [Dbltek SMS Server](SMSGateway/DbltekSMSServer)
