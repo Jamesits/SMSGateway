@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 def mail_handler(session, envelope):
     source_ip = session.peer[0]
-    source_device = config.ip_device_mapping[source_ip]
+    source_device = config.get_device("smtp", source_ip)
 
     try:
         if source_device['vendor'] == 'dbltek':
