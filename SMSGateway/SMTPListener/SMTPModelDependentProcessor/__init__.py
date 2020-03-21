@@ -1,7 +1,10 @@
-from .. import config
-from .dbltek import SMTPMailProcessorDbltek
 import logging
+
+from SMSGateway import config
+from .dbltek import SMTPMailProcessorDbltek
+
 logger = logging.getLogger(__name__)
+
 
 def mail_handler(session, envelope):
     source_ip = session.peer[0]

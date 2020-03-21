@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
+
 class SMTPMailProcessorBase:
     __metaclass__ = ABCMeta
 

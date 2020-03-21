@@ -15,7 +15,7 @@ ip = "::"
 port = 25
 
 ## SMS Server for Dbltek GoIP devices
-[[listener.DbltekSMSServer]]
+[[listener.DbltekSmsListener]]
 ip = "0.0.0.0"
 port = 44444
 

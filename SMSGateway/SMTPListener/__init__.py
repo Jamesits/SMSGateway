@@ -1,11 +1,15 @@
 import asyncio
+import base64
+import logging
+
 from aiosmtpd.controller import Controller
 from aiosmtpd.smtp import SMTP
-import logging
-import base64
-from . import SMTPModelDependentProcessor
+
+from SMSGateway.SMTPListener import SMTPModelDependentProcessor
+from ..IListener import IListener
 
 logger = logging.getLogger(__name__)
+
 
 # https://github.com/aio-libs/aiosmtpd/issues/102#issuecomment-302810943
 class NewSMTP(SMTP):
@@ -13,8 +17,8 @@ class NewSMTP(SMTP):
     def smtp_AUTH(self, arg):
         '''Authenticates user with any credential'''
         argv = str(arg).split(" ", 2)
-        if argv[0] == 'PLAIN': # password-only auth
-            if len(argv) == 1: # we have to ask for password
+        if argv[0] == 'PLAIN':  # password-only auth
+            if len(argv) == 1:  # we have to ask for password
                 yield from self.push('334')
                 try:
                     second_line = yield from self._reader.readline()
@@ -31,15 +35,15 @@ class NewSMTP(SMTP):
                     yield from self.push('500 Error: Challenge must be ASCII')
                     return
                 yield from self.push('235 Authentication successful')
-            else: # The user provided a password in the same line
+            else:  # The user provided a password in the same line
                 password = base64.b64decode(argv[1]).decode('ascii')
                 logger.debug(f"AUTH PLAIN with password \"{password}\"")
                 self.session.authenticated = True
                 self.session.auth_method = "PLAIN"
                 self.session.auth_password = password
                 yield from self.push('235 Authentication successful')
-        elif argv[0] == 'LOGIN': # username + password auth
-            yield from self.push('334 VXNlcm5hbWU6') # ask for username
+        elif argv[0] == 'LOGIN':  # username + password auth
+            yield from self.push('334 VXNlcm5hbWU6')  # ask for username
             try:
                 second_line = yield from self._reader.readline()
                 username = base64.b64decode(second_line).decode('ascii')
@@ -48,7 +52,7 @@ class NewSMTP(SMTP):
                 self.session.auth_username = username
             except (ConnectionResetError, asyncio.CancelledError) as error:
                 logger.error(error)
-            yield from self.push('334 UGFzc3dvcmQ6') # ask for password
+            yield from self.push('334 UGFzc3dvcmQ6')  # ask for password
             try:
                 second_line = yield from self._reader.readline()
                 password = base64.b64decode(second_line).decode('ascii')
@@ -73,9 +77,11 @@ class NewSMTP(SMTP):
             yield from self.push('501 Syntax: AUTH LOGIN')
             return
 
+
 class SMTPMessageGatewayController(Controller):
     def factory(self):
         return NewSMTP(self.handler, enable_SMTPUTF8=self.enable_SMTPUTF8)
+
 
 class SMTPMessageGatewayHandler:
 
@@ -91,12 +97,14 @@ class SMTPMessageGatewayHandler:
         import pprint
         rets = pprint.pformat(ret, indent=4)
         logger.info(f"Decoded message: \n{rets}")
-        
+
         return '250 Message accepted for delivery'
 
-class SMTPMessageGateway:
-    def __init__(self, listen_ip, listen_port):
-        self.controller = SMTPMessageGatewayController(SMTPMessageGatewayHandler(), hostname=listen_ip, port=listen_port, enable_SMTPUTF8=True)
+
+class SMTPListener(IListener):
+    def __init__(self, listener_config, global_config):
+        self.controller = SMTPMessageGatewayController(SMTPMessageGatewayHandler(), hostname=listener_config["ip"],
+                                                       port=listener_config["port"], enable_SMTPUTF8=True)
 
     def start(self):
         self.controller.start()

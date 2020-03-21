@@ -3,6 +3,7 @@ import toml
 user_config = {}
 connector_ip_device_mapping = {}
 
+
 def load_user_config(filename: str) -> None:
     global user_config, connector_ip_device_mapping
     user_config = toml.load(filename)
@@ -14,11 +15,13 @@ def load_user_config(filename: str) -> None:
                 connector_ip_device_mapping[device["connector"]] = {}
             connector_ip_device_mapping[device["connector"]][device["ip"]] = device
 
+
 def get_devices(connector):
     try:
         return connector_ip_device_mapping[connector]
     except KeyError:
         return {}
+
 
 def get_device(connector, ip):
     try:

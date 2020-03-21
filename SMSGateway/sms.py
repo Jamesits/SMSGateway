@@ -9,4 +9,3 @@ class SMS(dict):
 
         super(SMS, self).__init__(*args, **kwargs)
         self.__dict__ = self
-

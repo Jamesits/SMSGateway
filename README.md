@@ -12,4 +12,4 @@ python3 -m SMSGateway
 
 ## Supported OEM
 
-- [Dbltek SMS Server](SMSGateway/DbltekSMSServer)
+- [Dbltek SMS Server](SMSGateway/DbltekSmsListener)

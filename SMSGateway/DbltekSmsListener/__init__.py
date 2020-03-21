@@ -1,13 +1,17 @@
 import asyncio
-import threading
 import logging
+import threading
+
 from .protocol import DbltekSMSServerUDPProtocol
+from ..IListener import IListener
+
 logger = logging.getLogger(__name__)
 
-class DbltekSMSServer:
-    def __init__(self, ip, port):
-        self.ip = ip
-        self.port = port
+
+class DbltekSMSListener(IListener):
+    def __init__(self, listener_config, global_config):
+        self.ip = listener_config["ip"]
+        self.port = listener_config["port"]
         self.loop = asyncio.new_event_loop()
         self.server = None
         self._thread = None
@@ -27,7 +31,7 @@ class DbltekSMSServer:
         self.server = None
 
     def start(self):
-        assert self._thread is None, 'DbltekSMSServer daemon already running'
+        assert self._thread is None, 'DbltekSmsListener daemon already running'
         ready_event = threading.Event()
         self._thread = threading.Thread(target=self._run, args=(ready_event,))
         self._thread.daemon = True
@@ -43,7 +47,7 @@ class DbltekSMSServer:
             task.cancel()
 
     def stop(self):
-        assert self._thread is not None, 'DbltekSMSServer daemon not running'
+        assert self._thread is not None, 'DbltekSmsListener daemon not running'
         self.loop.call_soon_threadsafe(self._stop)
         self._thread.join()
         self._thread = None
