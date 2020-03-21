@@ -6,6 +6,7 @@ from time import sleep
 from . import config
 from .DbltekSmsListener import DbltekSMSListener
 from .IListener import IListener
+from .SMPPListener import SMPPListener
 from .SMTPListener import SMTPListener
 
 logger = logging.getLogger(__name__)
@@ -14,7 +15,7 @@ listeners: typing.List[IListener] = []
 listener_registration = {
     "SMTP": SMTPListener,
     "DbltekSmsListener": DbltekSMSListener,
-    # "SMPPListener": None,
+    "SMPPListener": SMPPListener,
 }
 
 
@@ -36,7 +37,7 @@ def main():
             if l_type not in listener_registration:
                 logger.warning(f"Unknown listener type {l_type}")
                 continue
-            logger.info(f"Starting {l_type} listener on [{l_config['ip']}]:{l_config['port']}")
+            logger.info(f"Starting {l_type} listener")
             new_listener = listener_registration[l_type](l_config, config)
             listeners.append(new_listener)
             new_listener.start()
