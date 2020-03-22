@@ -3,8 +3,8 @@ import logging
 import threading
 import typing
 
-from .protocol import DbltekSMSServerUDPProtocol
-from ..generic_listener import GenericListener
+from SMSGateway.DbltekSmsListener.protocol import DbltekSMSServerUDPProtocol
+from SMSGateway.generic_listener import GenericListener
 
 logger = logging.getLogger(__name__)
 

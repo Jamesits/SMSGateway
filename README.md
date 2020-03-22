@@ -1,30 +1,23 @@
 # SMSGateway
 
-SMS routing toolkit for VOIP devices.
+SMS routing server for VOIP/GOIP devices.
 
-This project is currently under heavy development. Expect config format incompatibility at any new version.
+## Supported Devices
+* Synway SMG4008
+
+## Supported Protocols
+
+### Receiving
+Generic:
+* SMPP
+
+### Sending
+* SMTP
+* Telegram Bot
 
 ## Running
-
 At project root:
 
 ```shell
 python3 -m SMSGateway
 ```
-
-## Supported Protocols
-
-### Receiving
-
-Generic:
-
-* SMTP
-* SMPP
-
-Vendor specific:
-
-* [Dbltek SMS Server](SMSGateway/DbltekSmsListener)
-
-## Sending
-
-* SMTP 

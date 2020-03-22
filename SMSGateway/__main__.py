@@ -3,6 +3,7 @@ import typing
 
 from SMSGateway import config
 from SMSGateway.generic_event_queue import PythonQueueBasedEventQueue
+from SMSGateway.generic_listener import GenericListener
 from SMSGateway.generic_source import GenericSource
 from SMSGateway.generic_vertex import GenericVertex
 from SMSGateway.mapping import *
@@ -83,6 +84,7 @@ def main():
     if 'listener' in config.user_config:
         for local_config in config.user_config['listener']:
             new_listener = init_vertex('listener', local_config, config)
+            assert isinstance(new_listener, GenericListener)
             new_listener.start()
 
     # initialize sinks
@@ -115,8 +117,9 @@ def main():
     except KeyboardInterrupt:
         logger.info("^C received, quitting...")
     finally:
-        # TODO: stop all the listeners and clean up
-        pass
+        for vertex in vertices:
+            if isinstance(vertex, GenericListener):
+                vertex.stop()
 
     logger.info("event loop stopped")
 
