@@ -2,6 +2,7 @@ import dataclasses
 import logging
 import typing
 from abc import ABC
+from collections import defaultdict
 
 from SMSGateway.envelope import Envelope
 
@@ -17,6 +18,7 @@ class GenericVertex(ABC):
     global_config: any
     in_edge_adjacent_vertices: typing.List["GenericVertex"]
     out_edge_adjacent_vertices: typing.List["GenericVertex"]
+    c: typing.Dict[str, typing.Dict]  # for any custom data that other modules need
 
     def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, any], global_config: any):
         self.alias = alias
@@ -25,6 +27,7 @@ class GenericVertex(ABC):
         self.global_config = global_config
         self.in_edge_adjacent_vertices = []
         self.out_edge_adjacent_vertices = []
+        self.c = defaultdict(dict)
 
     def add_in_edge(self, adjacent_vertex: "GenericVertex"):
         self.in_edge_adjacent_vertices.append(adjacent_vertex)

@@ -2,7 +2,9 @@ import logging
 import typing
 
 import pystache
+# noinspection PyPackageRequirements
 import telegram
+# noinspection PyPackageRequirements
 from telegram.ext import Updater, CommandHandler
 
 from SMSGateway.envelope import Envelope

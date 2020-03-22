@@ -2,6 +2,7 @@ import binascii
 import datetime
 import logging
 from threading import Thread
+from time import sleep
 
 import smpplib
 import smpplib.client
@@ -11,8 +12,10 @@ import smpplib.gsm
 from SMSGateway.SMPPListener.gsm_7bit_encoder import gsm_decode
 from SMSGateway.envelope import Envelope
 from SMSGateway.generic_listener import GenericListener
+from SMSGateway.generic_vertex import GenericVertex
 from SMSGateway.sms import SMS
 
+class_identifier = "SMPPListener"
 logger = logging.getLogger(__name__)
 decoder_map = {
     smpplib.consts.SMPP_ENCODING_DEFAULT: gsm_decode,
@@ -51,20 +54,32 @@ class SMPPListener(GenericListener):
     def add_out_edge(self, adjacent_vertex: "GenericVertex"):
         super().add_out_edge(adjacent_vertex)
 
-        adjacent_vertex.client = smpplib.client.Client(adjacent_vertex.local_config["ip"],
-                                                       adjacent_vertex.local_config["port"])
-        adjacent_vertex.client.set_message_sent_handler(self.smpp_message_send_handler)
-        adjacent_vertex.client.set_message_received_handler(self.smpp_message_receive_handler)
-        adjacent_vertex.client.connect()
-        try:
-            adjacent_vertex.client.bind_transceiver(system_id=adjacent_vertex.local_config["username"],
-                                                    password=adjacent_vertex.local_config["password"])
-        except smpplib.exceptions.PDUError as ex:
-            logger.exception(ex)
-            if ex.args[1] == 5:
-                logger.error("Connection per account limit reached")
-                # TODO: try again after a while
-        adjacent_vertex.smpp_client_listen_thread = Thread(target=adjacent_vertex.client.listen)
+        adjacent_vertex.c[class_identifier]['client'] = smpplib.client.Client(adjacent_vertex.local_config["ip"],
+                                                                              adjacent_vertex.local_config["port"])
+        adjacent_vertex.c[class_identifier]['client'].set_message_sent_handler(self.smpp_message_send_handler)
+        adjacent_vertex.c[class_identifier]['client'].set_message_received_handler(self.smpp_message_receive_handler)
+
+        def smpp_thread_func():
+            while True:
+                logger.info(f"SMPP connect to {adjacent_vertex.alias}")
+                try:
+                    adjacent_vertex.c[class_identifier]['client'].connect()
+                    adjacent_vertex.c[class_identifier]['client'].bind_transceiver(
+                        system_id=adjacent_vertex.local_config["username"],
+                        password=adjacent_vertex.local_config["password"])
+                    adjacent_vertex.c[class_identifier]['client'].listen()
+                except smpplib.exceptions.PDUError as ex:
+                    if ex.args[1] == 5:
+                        logger.exception("Connection per account limit reached")
+                        sleep(1)
+                    else:
+                        logger.exception("Unknown error during SMPP connection")
+                except smpplib.exceptions.ConnectionError as ex:
+                    logger.exception("Connection failed")
+                    sleep(0.2)
+
+        adjacent_vertex.smpp_thread_func = smpp_thread_func
+        adjacent_vertex.smpp_client_listen_thread = Thread(target=adjacent_vertex.smpp_thread_func)
         adjacent_vertex.smpp_client_listen_thread.start()
 
     def smpp_message_send_handler(self, pdu: smpplib.command):
@@ -106,7 +121,7 @@ class SMPPListener(GenericListener):
             # get the sending device object
             to_vertex = None
             for device in self.out_edge_adjacent_vertices:
-                if device.client == pdu.client:
+                if device.c[class_identifier]['client'] == pdu.client:
                     to_vertex = device
                     break
 
