@@ -1,3 +1,4 @@
+import os
 import typing
 
 from SMSGateway.sms import SMS
@@ -18,3 +19,10 @@ def create_mustache_context_from_sms(sms: SMS):
         'content': sms.content,
         'received_at': sms.received_at.strftime("%Y-%m-%d %H:%M:%S"),
     }
+
+
+def find_first_existing_file(f_list: typing.List[str]) -> str:
+    for f in f_list:
+        if os.path.isfile(f):
+            return f
+    return ""

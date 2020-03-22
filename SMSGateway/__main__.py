@@ -1,12 +1,15 @@
 import logging
+import os
 import typing
 
 from SMSGateway import config
+from SMSGateway.args import *
 from SMSGateway.generic_event_queue import PythonQueueBasedEventQueue
 from SMSGateway.generic_listener import GenericListener
 from SMSGateway.generic_source import GenericSource
 from SMSGateway.generic_vertex import GenericVertex
 from SMSGateway.mapping import *
+from SMSGateway.utils import find_first_existing_file
 
 logger = logging.getLogger(__name__)
 vertices: typing.List[GenericVertex] = []
@@ -67,12 +70,28 @@ def init_edge(vertex_from_alias: str, vertex_to_alias: str):
 
 
 def main():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s|%(name)-26s|[%(levelname)s] %(message)s'
+    )
     logger.info("SMSGateway server starting")
 
+    # parse arguments
+    config.args = parse_args()
+
+    user_config_file_path = config.args.config
+    if len(user_config_file_path) == 0:
+        user_config_file_path = find_first_existing_file([
+            "/etc/smsgateway/config.toml",
+            "./config.toml",
+            os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "config.toml"),
+        ])
+    if len(user_config_file_path) == 0:
+        logger.error("Unable to find a config file, please manually set --config command line argument")
+        sys.exit(-1)
+
     # load config
-    config.load_user_config("config.toml")
-    # import pprint
-    # pprint.pprint(config.user_config)
+    config.load_user_config(user_config_file_path)
 
     # config logging
     logging.basicConfig(level=config.user_config['general']['log_level'] * 10)

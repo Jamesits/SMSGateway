@@ -14,7 +14,7 @@ setup(
     author_email='github@public.swineson.me',
     url="https://swineson.me/",
     packages=['SMSGateway'],  # same as name
-    install_requires=['aiosmtpd', 'pytz', 'smpplib', 'pystache', 'python-telegram-bot'],
+    install_requires=['aiosmtpd', 'pytz', 'smpplib', 'pystache', 'python-telegram-bot', 'toml'],
     entry_points={
         'console_scripts': [
             'smsgateway=SMSGateway:main'
