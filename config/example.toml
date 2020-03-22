@@ -4,20 +4,22 @@
 # 1: debug; 2: info; 3: warning
 log_level = 2
 
-## SMTP listener
+## listeners
+
 [[listener.SMTP]]
 ip = "0.0.0.0"
 port = 25
 
-## you can define multiple listeners of the same kind like this
 [[listener.SMTP]]
 ip = "::"
 port = 25
 
-## SMS Server for Dbltek GoIP devices
 [[listener.DbltekSmsListener]]
 ip = "0.0.0.0"
 port = 44444
+
+[[listener.SMPPListener]]
+
 
 ## devices definition
 [[device]]
@@ -42,6 +44,19 @@ match_mode = "equal"
 username = "goip-1"
 password = "goip"
 timezone = +8
+route = [
+    "smtp1"
+]
+
+[[device]]
+vendor = "synway"
+model = "SMG4008-8LC"
+connector = "SMPP"
+ip = "192.168.1.102"
+port = 2775
+username = "smpp_user"
+password = "smpp_password"
+match_mode = "equal"
 route = [
     "smtp1"
 ]

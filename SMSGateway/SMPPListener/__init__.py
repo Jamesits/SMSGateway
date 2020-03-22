@@ -24,7 +24,7 @@ decoder_map = {
     smpplib.consts.SMPP_ENCODING_ISO88595: "iso8859_5",
     smpplib.consts.SMPP_ENCODING_ISO88598: "iso8859_8",
     smpplib.consts.SMPP_ENCODING_ISO10646: "utf_16_be",
-    smpplib.consts.SMPP_ENCODING_PICTOGRAM: "",
+    smpplib.consts.SMPP_ENCODING_PICTOGRAM: None,
     smpplib.consts.SMPP_ENCODING_ISO2022JP: "iso2022_jp",
     smpplib.consts.SMPP_ENCODING_EXTJIS: "shift_jisx0213",
     smpplib.consts.SMPP_ENCODING_KSC5601: "euc_kr",
@@ -56,7 +56,7 @@ def smpp_message_receive_handler(pdu: smpplib.command):
 
         # try to detect data encoding
         decoder = decoder_map[smpplib.consts.SMPP_ENCODING_DEFAULT]
-        if pdu.data_coding in decoder_map:
+        if (pdu.data_coding in decoder_map) and decoder_map[pdu.data_coding] is not None:
             decoder = decoder_map[pdu.data_coding]
         else:
             logger.warning(f"Unknown encoding {pdu.data_coding}")

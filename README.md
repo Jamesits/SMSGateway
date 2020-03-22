@@ -2,6 +2,8 @@
 
 SMS routing toolkit for VOIP devices.
 
+This project is currently under heavy development. Expect config format incompatibility at any new version.
+
 ## Running
 
 At project root:
@@ -10,6 +12,19 @@ At project root:
 python3 -m SMSGateway
 ```
 
-## Supported OEM
+## Supported Protocols
 
-- [Dbltek SMS Server](SMSGateway/DbltekSmsListener)
+### Receiving
+
+Generic:
+
+* SMTP
+* SMPP
+
+Vendor specific:
+
+* [Dbltek SMS Server](SMSGateway/DbltekSmsListener)
+
+## Sending
+
+* SMTP 
