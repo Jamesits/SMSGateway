@@ -17,6 +17,7 @@ from SMSGateway.sms import SMS
 
 class_identifier = "SMPPListener"
 logger = logging.getLogger(__name__)
+smpp_reconnect_interval_seconds = 0.25
 decoder_map = {
     smpplib.consts.SMPP_ENCODING_DEFAULT: gsm_decode,
     smpplib.consts.SMPP_ENCODING_IA5: "ascii",
@@ -54,29 +55,34 @@ class SMPPListener(GenericListener):
     def add_out_edge(self, adjacent_vertex: "GenericVertex"):
         super().add_out_edge(adjacent_vertex)
 
-        adjacent_vertex.c[class_identifier]['client'] = smpplib.client.Client(adjacent_vertex.local_config["ip"],
-                                                                              adjacent_vertex.local_config["port"])
-        adjacent_vertex.c[class_identifier]['client'].set_message_sent_handler(self.smpp_message_send_handler)
-        adjacent_vertex.c[class_identifier]['client'].set_message_received_handler(self.smpp_message_receive_handler)
-
         def smpp_thread_func():
             while True:
                 logger.info(f"SMPP connect to {adjacent_vertex.alias}")
                 try:
+                    # we must recreate the client every time, otherwise
+                    # ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+                    adjacent_vertex.c[class_identifier]['client'] = smpplib.client.Client(
+                        adjacent_vertex.local_config["ip"],
+                        adjacent_vertex.local_config["port"])
+                    adjacent_vertex.c[class_identifier]['client'].set_message_sent_handler(
+                        self.smpp_message_send_handler)
+                    adjacent_vertex.c[class_identifier]['client'].set_message_received_handler(
+                        self.smpp_message_receive_handler)
                     adjacent_vertex.c[class_identifier]['client'].connect()
                     adjacent_vertex.c[class_identifier]['client'].bind_transceiver(
                         system_id=adjacent_vertex.local_config["username"],
-                        password=adjacent_vertex.local_config["password"])
+                        password=adjacent_vertex.local_config["password"]
+                    )
                     adjacent_vertex.c[class_identifier]['client'].listen()
                 except smpplib.exceptions.PDUError as ex:
                     if ex.args[1] == 5:
                         logger.exception("Connection per account limit reached")
-                        sleep(1)
                     else:
                         logger.exception("Unknown error during SMPP connection")
                 except smpplib.exceptions.ConnectionError as ex:
                     logger.exception("Connection failed")
-                    sleep(0.2)
+                # wait and reconnect
+                sleep(smpp_reconnect_interval_seconds)
 
         adjacent_vertex.smpp_thread_func = smpp_thread_func
         adjacent_vertex.smpp_client_listen_thread = Thread(target=adjacent_vertex.smpp_thread_func)
