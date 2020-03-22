@@ -20,7 +20,9 @@ class GenericEventQueue(ABC):
 
 
 class PythonQueueBasedEventQueue(GenericEventQueue):
+    """A very basic event queue implementation"""
     def __init__(self):
+        super().__init__()
         self.queue = queue.Queue()
         self.queue_poll_interval_seconds = 0.25
 
@@ -31,9 +33,13 @@ class PythonQueueBasedEventQueue(GenericEventQueue):
     def event_loop_sync(self):
         while True:
             try:
-                envelope = self.queue.get_nowait()
+                envelope: Envelope = self.queue.get_nowait()
                 if envelope.to_vertex is not None:
-                    envelope.to_vertex.message_received_callback(envelope)
+                    try:
+                        envelope.to_vertex.message_received_callback(envelope)
+                    except Exception as ex:
+                        logger.exception(
+                            f"Event processing failed at {envelope.to_vertex.type}/{envelope.to_vertex.alias}")
                 else:
                     logger.warning(f"Queue received message with empty destination")
             except queue.Empty:
