@@ -10,6 +10,7 @@ COPY . /tmp/SMSGateway
 
 RUN cd /tmp/SMSGateway \
     && python3 setup.py install \
-    && rm /tmp/SMSGateway
+    && cd \
+    && rm -r /tmp/SMSGateway
 
 CMD [ "smsgateway" ]

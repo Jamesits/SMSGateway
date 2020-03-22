@@ -72,7 +72,7 @@ def init_edge(vertex_from_alias: str, vertex_to_alias: str):
 def main():
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s|%(name)-26s|[%(levelname)s] %(message)s'
+        format='%(asctime)s|%(name)-26s[%(levelname)s] %(message)s'
     )
     logger.info("SMSGateway server starting")
 
