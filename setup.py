@@ -17,7 +17,7 @@ setup(
     install_requires=['aiosmtpd', 'pytz', 'smpplib', 'pystache', 'python-telegram-bot', 'toml', 'gsm0338'],
     entry_points={
         'console_scripts': [
-            'smsgateway=SMSGateway:__main__.main'
+            'smsgateway=SMSGateway.__main__:main'
         ]
     }
 )
