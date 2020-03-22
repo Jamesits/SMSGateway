@@ -1,6 +1,7 @@
 import binascii
 import datetime
 import logging
+import typing
 from threading import Thread
 from time import sleep
 
@@ -18,7 +19,7 @@ from SMSGateway.sms import SMS
 class_identifier = "SMPPListener"
 logger = logging.getLogger(__name__)
 smpp_reconnect_interval_seconds = 0.25
-decoder_map = {
+decoder_map: typing.Dict[int, typing.Union[typing.Callable[[bytes], str], str, None]] = {
     smpplib.consts.SMPP_ENCODING_DEFAULT: gsm_decode,
     smpplib.consts.SMPP_ENCODING_IA5: "ascii",
     smpplib.consts.SMPP_ENCODING_BINARY: "utf_16_be",
@@ -28,7 +29,7 @@ decoder_map = {
     smpplib.consts.SMPP_ENCODING_ISO88595: "iso8859_5",
     smpplib.consts.SMPP_ENCODING_ISO88598: "iso8859_8",
     smpplib.consts.SMPP_ENCODING_ISO10646: "utf_16_be",
-    smpplib.consts.SMPP_ENCODING_PICTOGRAM: None,
+    smpplib.consts.SMPP_ENCODING_PICTOGRAM: None,  # different for each ISP, so we just ignore it
     smpplib.consts.SMPP_ENCODING_ISO2022JP: "iso2022_jp",
     smpplib.consts.SMPP_ENCODING_EXTJIS: "shift_jisx0213",
     smpplib.consts.SMPP_ENCODING_KSC5601: "euc_kr",

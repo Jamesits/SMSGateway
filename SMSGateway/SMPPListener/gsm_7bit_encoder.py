@@ -9,10 +9,10 @@ ext = ("````````````````````^```````````````````{}`````\\````````````[~]`"
        "|````````````````````````````````````€``````````````````````````")
 
 
-def gsm_encode(plaintext):
+def gsm_encode(plaintext: str) -> bytes:
     res = ""
     for c in plaintext:
-        idx = gsm.find(c);
+        idx = gsm.find(c)
         if idx != -1:
             res += chr(idx)
             continue
@@ -22,9 +22,8 @@ def gsm_encode(plaintext):
     return binascii.b2a_hex(res.encode('utf-8'))
 
 
-def gsm_decode(hexstr):
-    # res = binascii.a2b_hex(hexstr)
-    res = iter(hexstr)
+def gsm_decode(raw: bytes) -> str:
+    res = iter(raw)
     result = []
     for c in res:
         if c == 27:
