@@ -5,12 +5,12 @@ import typing
 from threading import Thread
 from time import sleep
 
+import gsm0338
 import smpplib
 import smpplib.client
 import smpplib.consts
 import smpplib.gsm
 
-from SMSGateway.SMPPListener.gsm_7bit_encoder import gsm_decode
 from SMSGateway.envelope import Envelope
 from SMSGateway.generic_listener import GenericListener
 from SMSGateway.generic_vertex import GenericVertex
@@ -20,7 +20,7 @@ class_identifier = "SMPPListener"
 logger = logging.getLogger(__name__)
 smpp_reconnect_interval_seconds = 0.25
 decoder_map: typing.Dict[int, typing.Union[typing.Callable[[bytes], str], str, None]] = {
-    smpplib.consts.SMPP_ENCODING_DEFAULT: gsm_decode,
+    smpplib.consts.SMPP_ENCODING_DEFAULT: "gsm03.38",
     smpplib.consts.SMPP_ENCODING_IA5: "ascii",
     smpplib.consts.SMPP_ENCODING_BINARY: "utf_16_be",
     smpplib.consts.SMPP_ENCODING_ISO88591: "latin_1",
@@ -34,6 +34,10 @@ decoder_map: typing.Dict[int, typing.Union[typing.Callable[[bytes], str], str, N
     smpplib.consts.SMPP_ENCODING_EXTJIS: "shift_jisx0213",
     smpplib.consts.SMPP_ENCODING_KSC5601: "euc_kr",
 }
+
+
+def do_not_optimize_away_my_imports():
+    gsm0338.get_codec_info()
 
 
 # for pdu.destination_addr and pdu.source_addr
