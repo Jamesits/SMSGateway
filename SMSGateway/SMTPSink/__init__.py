@@ -10,7 +10,7 @@ import pystache
 from SMSGateway.envelope import Envelope
 from SMSGateway.generic_vertex import GenericVertex
 from SMSGateway.sms import SMS
-from SMSGateway.utils import dict_fill_default
+from SMSGateway.utils import dict_fill_default, create_mustache_context_from_sms
 
 logger = logging.getLogger(__name__)
 
@@ -64,12 +64,7 @@ class SMTPSink(GenericVertex):
         return server
 
     def __send_mail(self, sms: SMS):
-        mustache_context = {
-            'sender': sms.sender,
-            'receiver': sms.receiver,
-            'content': sms.content,
-            'received_at': sms.received_at.strftime("%Y-%m-%d, %H:%M:%S"),
-        }
+        mustache_context = create_mustache_context_from_sms(sms)
         message = MIMEMultipart("alternative")
         message["Subject"] = pystache.render(self.local_config['subject'], mustache_context)
         message["From"] = self.local_config['from_address']

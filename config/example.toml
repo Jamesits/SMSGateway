@@ -1,7 +1,8 @@
 [general]
 # log level
 # 1: debug; 2: info; 3: warning
-log_level = 1
+# alert: setting log_level to 1 will cause credentials being printed in the log.
+log_level = 2
 
 [routes]
 # routes
@@ -28,7 +29,8 @@ log_level = 1
 ]
 
 "smg4008_1" = [
-    "default_mail"
+    "default_mail",
+    "telegram_1",
 ]
 
 # a SMTP receiver listen on IPv4
@@ -97,3 +99,9 @@ username = "smtp_user@example.com"
 password = "smtp_password"
 from_address = "smtp_user@example.com"
 to_address = "your_email@example.com"
+
+[[sink]]
+alias = "telegram_1"
+type = "telegram-bot"
+token = "your_bot_token"
+chat_id = 12345678

@@ -5,6 +5,7 @@ from SMSGateway.DbltekSmsListener import DbltekSMSListener
 from SMSGateway.SMPPListener import SMPPListener
 from SMSGateway.SMTPListener import SMTPListener
 from SMSGateway.SMTPSink import SMTPSink
+from SMSGateway.TelegramBotSink import TelegramBotSink
 
 listener_mapping = {
     "smtp": SMTPListener,
@@ -14,19 +15,15 @@ listener_mapping = {
 
 sink_mapping = {
     "smtp": SMTPSink,
+    "telegram-bot": TelegramBotSink,
 }
 
 filter_mapping = {
 
 }
 
-source_mapping = {
-    "smtp"
-}
-
 mapping_mapping = {
     "listener": listener_mapping,
     "sink": sink_mapping,
     "filter": filter_mapping,
-    "source": source_mapping,
 }
