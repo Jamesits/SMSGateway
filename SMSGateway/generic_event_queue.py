@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class GenericEventQueue(ABC):
     def __init__(self):
-        raise NotImplementedError
+        pass
 
     def enqueue(self, envelope: Envelope):
         raise NotImplementedError
