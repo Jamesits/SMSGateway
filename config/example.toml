@@ -1,73 +1,99 @@
-## general config
 [general]
 # log level
 # 1: debug; 2: info; 3: warning
-log_level = 2
+log_level = 1
 
-## listeners
+[routes]
+# routes
+# listener -> source [-> filter] -> sink
 
-[[listener.SMTP]]
+"smtp_ipv4_25" = [
+    "goip8_1"
+]
+
+"dbltek_ipv4_44444" = [
+    "goip8_2"
+]
+
+"smpp_1" = [
+    "smg4008_1"
+]
+
+"goip8_1" = [
+    "default_mail"
+]
+
+"goip8_2" = [
+    "default_mail"
+]
+
+"smg4008_1" = [
+    "default_mail"
+]
+
+# a SMTP receiver listen on IPv4
+[[listener]]
+alias = "smtp_ipv4_25"
+type = "smtp"
 ip = "0.0.0.0"
 port = 25
 
-[[listener.SMTP]]
+# a SMTP receiver listen on IPv6
+[[listener]]
+alias = "smtp_ipv6_25"
+type = "smtp"
 ip = "::"
 port = 25
 
-[[listener.DbltekSmsListener]]
+# a Dbltek API server listen on IPv4
+[[listener]]
+alias = "dbltek_ipv4_44444"
+type = "dbltek_api_server"
 ip = "0.0.0.0"
 port = 44444
 
-[[listener.SMPPListener]]
+# a SMPP client
+[[listener]]
+alias = "smpp_1"
+type = "smpp"
 
-
-## devices definition
-[[device]]
+[[source]]
+alias = "goip8_1"
+type = "smtp"
 vendor = "dbltek"
 model = "GoIP8"
-connector = "smtp"
-ip = "100.97.1.7"
-match_mode = "equal" # modes to match username and password: "equal", "wildcard" and "regex"
+ip = "192.168.1.100"
 username = "test-goip@example.com"
 password = "114514"
 timezone = +8
-route = [
-    "smtp1"
-]
 
-[[device]]
+[[source]]
+alias = "goip8_2"
+type = "dbltek_api_server"
 vendor = "dbltek"
 model = "GoIP8"
-connector = "dbltek_sms_server"
 ip = "192.168.1.101"
-match_mode = "equal"
 username = "goip-1"
 password = "goip"
 timezone = +8
-route = [
-    "smtp1"
-]
 
-[[device]]
+[[source]]
+alias = "smg4008_1"
+type = "smpp"
 vendor = "synway"
 model = "SMG4008-8LC"
-connector = "SMPP"
 ip = "192.168.1.102"
 port = 2775
-username = "smpp_user"
+username = "smpp_username"
 password = "smpp_password"
-match_mode = "equal"
-route = [
-    "smtp1"
-]
 
-## routing destination definition
-[[route]]
-alias = "smtp1"
-connector = "smtp"
+[[sink]]
+alias = "default_mail"
+type = "smtp"
 server = "smtp.example.com"
-port = 25
-username = "test@example.com"
-password = "114514"
-from_address = "test@example.com"
-to_address = "test@example.com"
+port = 465
+encryption = 'tls'
+username = "smtp_user@example.com"
+password = "smtp_password"
+from_address = "smtp_user@example.com"
+to_address = "your_email@example.com"
