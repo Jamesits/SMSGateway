@@ -1,17 +1,19 @@
 import asyncio
 import logging
 import threading
+import typing
 
 from .protocol import DbltekSMSServerUDPProtocol
-from ..IListener import IListener
+from ..generic_listener import GenericListener
 
 logger = logging.getLogger(__name__)
 
 
-class DbltekSMSListener(IListener):
-    def __init__(self, listener_config, global_config):
-        self.ip = listener_config["ip"]
-        self.port = listener_config["port"]
+class DbltekSMSListener(GenericListener):
+    def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, any], global_config: any):
+        super().__init__(alias, object_type, local_config, global_config)
+        self.ip = local_config["ip"]
+        self.port = local_config["port"]
         self.loop = asyncio.new_event_loop()
         self.server = None
         self._thread = None

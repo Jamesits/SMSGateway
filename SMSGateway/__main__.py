@@ -1,56 +1,124 @@
 import logging
-import sys
 import typing
-from time import sleep
 
-from . import config
-from .DbltekSmsListener import DbltekSMSListener
-from .IListener import IListener
-from .SMPPListener import SMPPListener
-from .SMTPListener import SMTPListener
+from SMSGateway import config
+from SMSGateway.generic_event_queue import PythonQueueBasedEventQueue
+from SMSGateway.generic_source import GenericSource
+from SMSGateway.generic_vertex import GenericVertex
+from SMSGateway.mapping import *
 
 logger = logging.getLogger(__name__)
-listeners: typing.List[IListener] = []
+vertices: typing.List[GenericVertex] = []
+edges: typing.List[typing.Tuple[GenericVertex, GenericVertex]] = []
 
-listener_registration = {
-    "SMTP": SMTPListener,
-    "DbltekSmsListener": DbltekSMSListener,
-    "SMPPListener": SMPPListener,
-}
+
+def init_vertex(vertex_type: str, local_config: typing.Dict[str, any], global_config: any) -> GenericVertex:
+    alias = local_config['alias']
+    object_type = local_config['type'].lower()
+    logger.info(f"Initializing vertex {vertex_type}/{object_type} {alias}")
+
+    if vertex_type == 'source':
+        # source nodes doesn't need mapping; they are plain config nodes
+        new_vertex = GenericSource(
+            alias,
+            object_type,
+            local_config,
+            global_config,
+        )
+    else:
+        mapping = mapping_mapping[vertex_type.lower()]
+        new_vertex = mapping[object_type](
+            alias,
+            object_type,
+            local_config,
+            global_config,
+        )
+
+    vertices.append(new_vertex)
+    return new_vertex
+
+
+def init_edge(vertex_from_alias: str, vertex_to_alias: str):
+    logger.info(f"Initializing edge {vertex_from_alias} -> {vertex_to_alias}")
+    # find the vertices we need
+    vertex_from = None
+    vertex_to = None
+    for vertex in vertices:
+        if vertex.alias == vertex_from_alias:
+            vertex_from = vertex
+            continue
+        if vertex.alias == vertex_to_alias:
+            vertex_to = vertex
+            continue
+
+    if (vertex_from is None) or (vertex_to is None):
+        logger.error(f"Incorrect edge definition")
+        return
+
+    # save edge information in global variable
+    edges.append((vertex_from, vertex_to))
+
+    # save edge information in every node
+    vertex_from.add_out_edge(vertex_to)
+    vertex_to.add_in_edge(vertex_from)
+
+    return vertex_from, vertex_to
 
 
 def main():
-    logger.info("Starting")
+    logger.info("SMSGateway server starting")
 
     # load config
     config.load_user_config("config.toml")
+    # import pprint
+    # pprint.pprint(config.user_config)
 
     # config logging
     logging.basicConfig(level=config.user_config['general']['log_level'] * 10)
 
-    if "listener" not in config.user_config:
-        logger.error("No listener defined, quitting")
-        sys.exit(-1)
+    # initialize an event queue
+    config.queue = PythonQueueBasedEventQueue()
 
-    for l_type in config.user_config["listener"]:
-        for l_config in config.user_config["listener"][l_type]:
-            if l_type not in listener_registration:
-                logger.warning(f"Unknown listener type {l_type}")
-                continue
-            logger.info(f"Starting {l_type} listener")
-            new_listener = listener_registration[l_type](l_config, config)
-            listeners.append(new_listener)
+    # initialize all the listeners
+    if 'listener' in config.user_config:
+        for local_config in config.user_config['listener']:
+            new_listener = init_vertex('listener', local_config, config)
             new_listener.start()
 
+    # initialize sinks
+    if 'sink' in config.user_config:
+        for local_config in config.user_config['sink']:
+            init_vertex('sink', local_config, config)
+
+    # initialize filters
+    if 'filter' in config.user_config:
+        for local_config in config.user_config['filter']:
+            init_vertex('filter', local_config, config)
+
+    # initialize sources
+    if 'source' in config.user_config:
+        for local_config in config.user_config['source']:
+            init_vertex('source', local_config, config)
+
+    # create edges
+    if 'routes' in config.user_config:
+        for vertex_from_alias in config.user_config['routes'].keys():
+            for vertex_to_alias in config.user_config['routes'][vertex_from_alias]:
+                init_edge(vertex_from_alias, vertex_to_alias)
+
+    logger.info("Config file parsed")
+
     # start event loop
+    logger.info("Starting event loop")
     try:
-        while True:
-            sleep(1)
+        config.queue.event_loop_sync()
     except KeyboardInterrupt:
         logger.info("^C received, quitting...")
     finally:
-        for listener in listeners:
-            listener.stop()
+        # TODO: stop all the listeners and clean up
+        pass
+
+    logger.info("event loop stopped")
 
 
 if __name__ == "__main__":

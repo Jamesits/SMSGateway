@@ -1,12 +1,13 @@
 import asyncio
 import base64
 import logging
+import typing
 
 from aiosmtpd.controller import Controller
 from aiosmtpd.smtp import SMTP
 
 from SMSGateway.SMTPListener import SMTPModelDependentProcessor
-from ..IListener import IListener
+from ..generic_listener import GenericListener
 
 logger = logging.getLogger(__name__)
 
@@ -101,10 +102,11 @@ class SMTPMessageGatewayHandler:
         return '250 Message accepted for delivery'
 
 
-class SMTPListener(IListener):
-    def __init__(self, listener_config, global_config):
-        self.controller = SMTPMessageGatewayController(SMTPMessageGatewayHandler(), hostname=listener_config["ip"],
-                                                       port=listener_config["port"], enable_SMTPUTF8=True)
+class SMTPListener(GenericListener):
+    def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, any], global_config: any):
+        super().__init__(alias, object_type, local_config, global_config)
+        self.controller = SMTPMessageGatewayController(SMTPMessageGatewayHandler(), hostname=local_config["ip"],
+                                                       port=local_config["port"], enable_SMTPUTF8=True)
 
     def start(self):
         self.controller.start()

@@ -1,7 +1,10 @@
 import toml
 
+from SMSGateway.generic_event_queue import GenericEventQueue
+
 user_config = {}
 connector_ip_device_mapping = {}
+queue: GenericEventQueue
 
 
 def load_user_config(filename: str) -> None:

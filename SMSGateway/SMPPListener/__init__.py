@@ -1,7 +1,6 @@
 import binascii
+import datetime
 import logging
-import typing
-from dataclasses import dataclass
 from threading import Thread
 
 import smpplib
@@ -9,11 +8,12 @@ import smpplib.client
 import smpplib.consts
 import smpplib.gsm
 
-from .gsm_7bit_encoder import gsm_decode
-from ..IListener import IListener
+from SMSGateway.SMPPListener.gsm_7bit_encoder import gsm_decode
+from SMSGateway.envelope import Envelope
+from SMSGateway.generic_listener import GenericListener
+from SMSGateway.sms import SMS
 
 logger = logging.getLogger(__name__)
-smpp_devices: typing.List["SMPPDevice"] = []
 decoder_map = {
     smpplib.consts.SMPP_ENCODING_DEFAULT: gsm_decode,
     smpplib.consts.SMPP_ENCODING_IA5: "ascii",
@@ -31,79 +31,89 @@ decoder_map = {
 }
 
 
-@dataclass(init=False)
-class SMPPDevice:
-    device_config: any
-    smpp_client: smpplib.client.Client
-    smpp_client_listen_thread: Thread
+# for pdu.destination_addr and pdu.source_addr
+# FIXME: use the correct decoder
+def decode_pdu_addr(raw: bytes) -> str:
+    try:
+        return raw.decode('ascii')
+    except Exception as ex:
+        logger.exception(ex)
+        return str(raw)
 
 
-def smpp_message_send_handler(pdu: smpplib.command):
-    logger.info(f"sent {pdu.sequence} {pdu.message_id}")
-
-
-def smpp_message_receive_handler(pdu: smpplib.command):
-    logger.info(f"delivered {pdu.receipted_message_id}")
-    if pdu.command == "deliver_sm":
-        # got new message
-
-        sender = ""
-        try:
-            sender = pdu.source_addr.decode('ascii')
-        except Exception as ex:
-            logger.exception(ex)
-            sender = str(pdu.source_addr)
-
-        # try to detect data encoding
-        decoder = decoder_map[smpplib.consts.SMPP_ENCODING_DEFAULT]
-        if (pdu.data_coding in decoder_map) and decoder_map[pdu.data_coding] is not None:
-            decoder = decoder_map[pdu.data_coding]
-        else:
-            logger.warning(f"Unknown encoding {pdu.data_coding}")
-
-        encoded_message = ""
-        try:
-            if callable(decoder):
-                encoded_message = decoder(pdu.short_message)
-            else:
-                encoded_message = pdu.short_message.decode(decoder)
-        except Exception as ex:
-            logger.exception(ex)
-            encoded_message = binascii.hexlify(pdu.short_message).decode("ascii")
-
-        logger.info(
-            f"New SMS from {sender}: {encoded_message}")
-
-
-class SMPPListener(IListener):
-    def __init__(self, listener_config, global_config):
-        # we can't actually "listen" something because we are the client not the server
-        if "device" in global_config.user_config:
-            for device in global_config.user_config["device"]:
-                if device["connector"] == "SMPP":
-                    # that's the device we need to connect to
-                    new_device = SMPPDevice()
-                    new_device.device_config = device
-                    smpp_devices.append(new_device)
-
+class SMPPListener(GenericListener):
     def start(self):
-        # connect to the devices
-        for device in smpp_devices:
-            device.client = smpplib.client.Client(device.device_config["ip"], device.device_config["port"])
-            device.client.set_message_sent_handler(smpp_message_send_handler)
-            device.client.set_message_received_handler(smpp_message_receive_handler)
-            device.client.connect()
-            try:
-                device.client.bind_transceiver(system_id=device.device_config["username"],
-                                               password=device.device_config["password"])
-            except smpplib.exceptions.PDUError as ex:
-                logger.exception(ex)
-                if ex.args[1] == 5:
-                    logger.error("Connection per account limit reached")
-                    # TODO: try again after a while
-            device.smpp_client_listen_thread = Thread(target=device.client.listen)
-            device.smpp_client_listen_thread.start()
+        pass
 
     def stop(self):
-        for device in smpp_devices:
-            pass
+        pass
+
+    def add_out_edge(self, adjacent_vertex: "GenericVertex"):
+        super().add_out_edge(adjacent_vertex)
+
+        adjacent_vertex.client = smpplib.client.Client(adjacent_vertex.local_config["ip"],
+                                                       adjacent_vertex.local_config["port"])
+        adjacent_vertex.client.set_message_sent_handler(self.smpp_message_send_handler)
+        adjacent_vertex.client.set_message_received_handler(self.smpp_message_receive_handler)
+        adjacent_vertex.client.connect()
+        try:
+            adjacent_vertex.client.bind_transceiver(system_id=adjacent_vertex.local_config["username"],
+                                                    password=adjacent_vertex.local_config["password"])
+        except smpplib.exceptions.PDUError as ex:
+            logger.exception(ex)
+            if ex.args[1] == 5:
+                logger.error("Connection per account limit reached")
+                # TODO: try again after a while
+        adjacent_vertex.smpp_client_listen_thread = Thread(target=adjacent_vertex.client.listen)
+        adjacent_vertex.smpp_client_listen_thread.start()
+
+    def smpp_message_send_handler(self, pdu: smpplib.command):
+        logger.info(f"sent {pdu.sequence} {pdu.message_id}")
+
+    def smpp_message_receive_handler(self, pdu: smpplib.command):  # pdu is a smpplib.pdu.PDU
+        logger.info(f"delivered {pdu.receipted_message_id}")
+        if pdu.command == "deliver_sm":
+            # got new message
+            sender = decode_pdu_addr(pdu.source_addr)
+            receiver = decode_pdu_addr(pdu.destination_addr)  # usually '0'
+
+            # try to detect data encoding
+            decoder = decoder_map[smpplib.consts.SMPP_ENCODING_DEFAULT]
+            if (pdu.data_coding in decoder_map) and decoder_map[pdu.data_coding] is not None:
+                decoder = decoder_map[pdu.data_coding]
+            else:
+                logger.warning(f"Unknown encoding {pdu.data_coding}")
+
+            try:
+                if callable(decoder):
+                    encoded_message = decoder(pdu.short_message)
+                else:
+                    encoded_message = pdu.short_message.decode(decoder)
+            except Exception as ex:
+                logger.exception(ex)
+                encoded_message = binascii.hexlify(pdu.short_message).decode("ascii")
+
+            logger.info(f"New SMS from {sender}: {encoded_message}")
+
+            # construct sms data structure
+            new_sms = SMS(
+                sender=sender,
+                receiver=receiver,
+                content=encoded_message,
+                received_at=datetime.datetime.now(),
+            )
+
+            # get the sending device object
+            to_vertex = None
+            for device in self.out_edge_adjacent_vertices:
+                if device.client == pdu.client:
+                    to_vertex = device
+                    break
+
+            envelope = Envelope(
+                from_vertex=self,
+                to_vertex=to_vertex,
+                sms=new_sms
+            )
+
+            self.send_message(envelope)
