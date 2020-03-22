@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM python:3-buster
 LABEL maintainer="docker@public.swineson.me"
 
 RUN apt-get update \
