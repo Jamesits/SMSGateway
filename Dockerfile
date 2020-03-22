@@ -6,6 +6,10 @@ RUN apt-get update \
 	&& apt-get install -y python3 python3-pip python3-setuptools \
 	&& rm -rf /var/lib/apt/lists/*
 
-RUN python3 setup.py install
+COPY . /tmp/SMSGateway
+
+RUN cd /tmp/SMSGateway \
+    && python3 setup.py install \
+    && rm /tmp/SMSGateway
 
 CMD [ "smsgateway" ]
