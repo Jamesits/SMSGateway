@@ -20,8 +20,7 @@ Generic:
 * Telegram Bot
 
 ## Running
-
-Put your config file at `/etc/smsgateway/config.toml`.
+Put your config file at `/etc/smsgateway/config.toml`. See [config.toml](https://github.com/Jamesits/SMSGateway/blob/master/config/config.toml) for an example.
 
 ### Docker
 

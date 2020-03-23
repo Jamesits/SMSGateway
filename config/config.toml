@@ -1,0 +1,49 @@
+[general]
+# log level
+# 1: debug; 2: info; 3: warning
+# alert: setting log_level to 1 will cause credentials being printed in the log.
+log_level = 2
+
+[routes]
+# routes
+# connector -> device [-> filter] -> connector
+
+"smpp_1" = [
+    "smg4008_1"
+]
+
+"smg4008_1" = [
+    "default_mail",
+    "telegram_1",
+]
+
+# a SMPP client
+[[connector]]
+alias = "smpp_1"
+type = "smpp-client"
+
+[[connector]]
+alias = "default_mail"
+type = "smtp-client"
+server = "smtp.example.com"
+port = 465
+encryption = 'tls'
+username = "smtp_user@example.com"
+password = "smtp_password"
+from_address = "smtp_user@example.com"
+to_address = "your_email@example.com"
+
+[[connector]]
+alias = "telegram_1"
+type = "telegram-bot"
+token = "your_bot_token"
+chat_id = 12345678
+
+[[device]]
+alias = "smg4008_1"
+vendor = "synway"
+model = "SMG4008-8LC"
+ip = "192.168.1.102"
+port = 2775
+username = "smpp_username"
+password = "smpp_password"
