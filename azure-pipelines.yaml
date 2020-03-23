@@ -49,7 +49,7 @@ jobs:
         versionSpec: '$(python.version)'
 
     - bash: |
-        sudo -EH python3 -m pip install --upgrade pip setuptools mypy
+        sudo -EH python3 -m pip install --upgrade pip setuptools mypy flake8 pytest pytest-cov
       displayName: 'Install dependencies'
 
     - bash: |
@@ -60,3 +60,11 @@ jobs:
         mypy .
       displayName: 'Mypy check'
       continueOnError: true
+
+    - script: |
+        flake8 .
+      displayName: 'flake8 check'
+
+    - script: |
+        pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
+      displayName: 'pytest check'
