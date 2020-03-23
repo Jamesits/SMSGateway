@@ -2,6 +2,8 @@
 
 SMS routing server for VOIP/GOIP devices.
 
+[![Build Status](https://dev.azure.com/nekomimiswitch/General/_apis/build/status/SMSGateway?branchName=master)](https://dev.azure.com/nekomimiswitch/General/_build/latest?definitionId=79&branchName=master) [![](https://images.microbadger.com/badges/image/jamesits/smsgateway.svg)](https://microbadger.com/images/jamesits/smsgateway "Get your own image badge on microbadger.com")
+
 Use with caution: config file format might change at any version.
 
 ## Supported Devices
