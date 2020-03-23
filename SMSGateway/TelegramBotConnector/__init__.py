@@ -54,7 +54,7 @@ class TelegramBotConnector(GenericConnector):
         update.message.reply_text(update.message.chat.id)
 
     def message_received_callback(self, envelope: Envelope):
-        logger.info(f"Got message {envelope.sms.content}")
+        logger.debug(f"Got message {envelope.sms.content}")
         mustache_context = create_mustache_context_from_sms(envelope.sms)
         self.bot.send_message(chat_id=self.local_config['chat_id'], text=pystache.render(
             self.local_config['message'],

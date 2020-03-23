@@ -102,5 +102,5 @@ class SMTPClientConnector(GenericConnector):
             )
 
     def message_received_callback(self, envelope: Envelope):
-        logger.info(f"Got message {envelope.sms.content}")
+        logger.debug(f"Got message {envelope.sms.content}")
         self.__send_mail(envelope.sms)

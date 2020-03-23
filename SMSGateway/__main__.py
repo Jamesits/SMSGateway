@@ -124,7 +124,7 @@ def main():
     # initialize an event queue
     config.queue = PythonQueueBasedEventQueue()
 
-    # initialize all the listeners
+    # initialize connectors
     if 'connector' in config.user_config:
         for local_config in config.user_config['connector']:
             new_connector = init_vertex('connector', local_config, config)
@@ -136,7 +136,7 @@ def main():
         for local_config in config.user_config['filter']:
             init_vertex('filter', local_config, config)
 
-    # initialize sources
+    # initialize devices
     if 'device' in config.user_config:
         for local_config in config.user_config['device']:
             init_vertex('device', local_config, config)
