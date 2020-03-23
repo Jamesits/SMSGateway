@@ -49,7 +49,7 @@ jobs:
         versionSpec: '$(python.version)'
 
     - bash: |
-        sudo python3 -m pip install --upgrade pip setuptools
+        sudo python3 -m pip install --upgrade pip setuptools mypy
         sudo python3 setup.py install
       displayName: 'Install'
 
