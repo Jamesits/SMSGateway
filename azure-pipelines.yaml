@@ -74,7 +74,7 @@ jobs:
       continueOnError: true
 
     - script: |
-        pytest . --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml
+        pytest . --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
       displayName: 'pytest check'
       continueOnError: true
 
