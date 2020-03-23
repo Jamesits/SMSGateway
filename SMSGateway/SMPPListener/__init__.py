@@ -19,6 +19,11 @@ from SMSGateway.sms import SMS
 class_identifier = "SMPPListener"
 logger = logging.getLogger(__name__)
 smpp_reconnect_interval_seconds = 0.25
+
+# defines the mapping from SMPP encodings to python decoders
+# if the value is a function, func(raw_bytes) will be called to decode the bytes
+# if the value is a string, then we'll call raw_bytes.decode(value)
+# if the value is None, an exception will be raised
 decoder_map: typing.Dict[int, typing.Union[typing.Callable[[bytes], str], str, None]] = {
     smpplib.consts.SMPP_ENCODING_DEFAULT: "gsm03.38",
     smpplib.consts.SMPP_ENCODING_IA5: "ascii",
@@ -48,6 +53,25 @@ def decode_pdu_addr(raw: bytes) -> str:
     except Exception as ex:
         logger.exception(ex)
         return str(raw)
+
+
+def decode_pdu_message_content(pdu: smpplib.command) -> str:
+    decoder = decoder_map[smpplib.consts.SMPP_ENCODING_DEFAULT]
+    if (pdu.data_coding in decoder_map) and decoder_map[pdu.data_coding] is not None:
+        decoder = decoder_map[pdu.data_coding]
+    else:
+        logger.error(f"Unknown encoding {pdu.data_coding}")
+
+    try:
+        if callable(decoder):
+            encoded_message = decoder(pdu.short_message)
+        else:
+            encoded_message = pdu.short_message.decode(decoder)
+    except Exception as ex:
+        logger.exception(ex)
+        encoded_message = binascii.hexlify(pdu.short_message).decode("ascii")
+
+    return encoded_message
 
 
 class SMPPListener(GenericListener):
@@ -105,30 +129,14 @@ class SMPPListener(GenericListener):
             # got new message
             sender = decode_pdu_addr(pdu.source_addr)
             receiver = decode_pdu_addr(pdu.destination_addr)  # usually '0'
-
-            # try to detect data encoding
-            decoder = decoder_map[smpplib.consts.SMPP_ENCODING_DEFAULT]
-            if (pdu.data_coding in decoder_map) and decoder_map[pdu.data_coding] is not None:
-                decoder = decoder_map[pdu.data_coding]
-            else:
-                logger.warning(f"Unknown encoding {pdu.data_coding}")
-
-            try:
-                if callable(decoder):
-                    encoded_message = decoder(pdu.short_message)
-                else:
-                    encoded_message = pdu.short_message.decode(decoder)
-            except Exception as ex:
-                logger.exception(ex)
-                encoded_message = binascii.hexlify(pdu.short_message).decode("ascii")
-
-            logger.info(f"New SMS from {sender}: {encoded_message}")
+            message = decode_pdu_message_content(pdu)
+            logger.info(f"New SMS from {sender} to {receiver}: {message}")
 
             # construct sms data structure
             new_sms = SMS(
                 sender=sender,
                 receiver=receiver,
-                content=encoded_message,
+                content=message,
                 received_at=datetime.datetime.now(),
             )
 
