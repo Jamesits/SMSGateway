@@ -36,8 +36,10 @@ class GenericVertex(ABC):
         self.out_edge_adjacent_vertices.append(adjacent_vertex)
 
     def message_received_callback(self, envelope: Envelope):
-        # by default, duplicate the message to every out edges
+        # by default, duplicate the message to every out edges, but do not send the message back
         for vertex in self.out_edge_adjacent_vertices:
+            if vertex == envelope.from_vertex:
+                continue
             new_envelope = Envelope(
                 from_vertex=self,
                 to_vertex=vertex,

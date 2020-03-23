@@ -6,7 +6,7 @@ from collections import defaultdict
 from SMSGateway.DbltekApiServerConnector import DbltekApiServerConnector
 from SMSGateway.SMPPConnector import SMPPConnector
 from SMSGateway.SMTPClientConnector import SMTPClientConnector
-from SMSGateway.SMTPListener import SMTPConnector
+from SMSGateway.SMTPServerConnector import SMTPServerConnector
 from SMSGateway.TelegramBotConnector import TelegramBotConnector
 from SMSGateway.generic_device import GenericDevice
 from SMSGateway.generic_vertex import GenericVertex
@@ -21,7 +21,7 @@ device_mapping: MappingType = defaultdict(
 )
 
 connector_mapping: MappingType = {
-    "smtp-server": SMTPConnector,
+    "smtp-server": SMTPServerConnector,
     "dbltek-api-server": DbltekApiServerConnector,
     "smpp-client": SMPPConnector,
     "smtp-client": SMTPClientConnector,
