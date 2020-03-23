@@ -8,24 +8,8 @@ log_level = 2
 # routes
 # listener -> source [-> filter] -> sink
 
-"smtp_ipv4_25" = [
-    "goip8_1"
-]
-
-"dbltek_ipv4_44444" = [
-    "goip8_2"
-]
-
 "smpp_1" = [
     "smg4008_1"
-]
-
-"goip8_1" = [
-    "default_mail"
-]
-
-"goip8_2" = [
-    "default_mail"
 ]
 
 "smg4008_1" = [
@@ -33,51 +17,10 @@ log_level = 2
     "telegram_1",
 ]
 
-# a SMTP receiver listen on IPv4
-[[listener]]
-alias = "smtp_ipv4_25"
-type = "smtp"
-ip = "0.0.0.0"
-port = 25
-
-# a SMTP receiver listen on IPv6
-[[listener]]
-alias = "smtp_ipv6_25"
-type = "smtp"
-ip = "::"
-port = 25
-
-# a Dbltek API server listen on IPv4
-[[listener]]
-alias = "dbltek_ipv4_44444"
-type = "dbltek_api_server"
-ip = "0.0.0.0"
-port = 44444
-
 # a SMPP client
 [[listener]]
 alias = "smpp_1"
 type = "smpp"
-
-[[source]]
-alias = "goip8_1"
-type = "smtp"
-vendor = "dbltek"
-model = "GoIP8"
-ip = "192.168.1.100"
-username = "test-goip@example.com"
-password = "114514"
-timezone = +8
-
-[[source]]
-alias = "goip8_2"
-type = "dbltek_api_server"
-vendor = "dbltek"
-model = "GoIP8"
-ip = "192.168.1.101"
-username = "goip-1"
-password = "goip"
-timezone = +8
 
 [[source]]
 alias = "smg4008_1"
