@@ -1,0 +1,57 @@
+name: $(Date:yyyyMMdd).$(Rev:r)
+
+trigger:
+  batch: true
+  branches:
+    include: [ "*" ]
+  paths:
+    exclude: [ "README.md" ]
+
+jobs:
+  - job: docker_ci
+    displayName: "Docker CI"
+    pool:
+      vmImage: "ubuntu-latest"
+    workspace:
+      clean: all
+    timeoutInMinutes: 10
+
+    steps:
+    - checkout: 'self'
+      clean: true
+      submodules: 'recursive'
+
+    - bash: |
+        docker build --tag jamesits/smsgateway:latest .
+      displayName: 'Build'
+
+  - job: python_ci
+    displayName: "Python CI"
+    pool:
+      vmImage: "ubuntu-latest"
+    workspace:
+      clean: all
+    timeoutInMinutes: 10
+    strategy:
+      matrix:
+        Python37:
+          python.version: '3.7'
+        Python38:
+          python.version: '3.8'
+
+    steps:
+    - checkout: 'self'
+      clean: true
+      submodules: 'recursive'
+
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+
+    - bash: |
+        sudo python3 setup.py install
+      displayName: 'Install'
+
+    - bash: |
+        mypy .
+      displayName: 'Mypy check'
