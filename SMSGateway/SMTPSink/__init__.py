@@ -21,7 +21,9 @@ class SMTPSink(GenericVertex):
 
         # fill default config
         dict_value_normalize(self.local_config, 'encryption', 'tls', to_lower=True, trim=True)
-        if self.local_config['encryption'] == 'ssl': self.local_config['encryption'] = 'tls'
+        if self.local_config['encryption'] == 'ssl':
+            self.local_config['encryption'] = 'tls'
+
         if self.local_config['encryption'] == 'tls':
             default_port = 465
         elif self.local_config['encryption'] == 'starttls':
@@ -31,6 +33,7 @@ class SMTPSink(GenericVertex):
         else:
             raise SyntaxError(f"SMTP unknown encryption method {self.local_config['encryption']}")
         dict_value_normalize(self.local_config, 'port', default_port)
+
         dict_value_normalize(self.local_config, 'from_address', local_config['username'])
         dict_value_normalize(self.local_config, 'subject', "New SMS from {{sender}}")
         dict_value_normalize(self.local_config, 'body_plaintext',

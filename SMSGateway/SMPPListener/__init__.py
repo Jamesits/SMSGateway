@@ -84,7 +84,7 @@ class SMPPListener(GenericListener):
                         logger.exception("Connection per account limit reached")
                     else:
                         logger.exception("Unknown error during SMPP connection")
-                except smpplib.exceptions.ConnectionError as ex:
+                except smpplib.exceptions.ConnectionError:
                     logger.exception("Connection failed")
                 # wait and reconnect
                 sleep(smpp_reconnect_interval_seconds)

@@ -3,11 +3,11 @@ import os
 import typing
 
 from SMSGateway import config
-from SMSGateway.args import *
+from SMSGateway.args import parse_args
 from SMSGateway.generic_event_queue import PythonQueueBasedEventQueue
 from SMSGateway.generic_listener import GenericListener
 from SMSGateway.generic_vertex import GenericVertex
-from SMSGateway.mapping import *
+from SMSGateway.mapping import mapping_mapping
 from SMSGateway.utils import find_first_existing_file
 
 logger = logging.getLogger(__name__)
@@ -78,9 +78,10 @@ def main():
         ])
     if len(user_config_file_path) == 0:
         logger.error("Unable to find a config file, please manually set --config command line argument")
-        sys.exit(-1)
+        raise SystemExit(-1)
 
     # load config
+    logger.info(f"Loading config file from {user_config_file_path}")
     config.load_user_config(user_config_file_path)
 
     # config logging

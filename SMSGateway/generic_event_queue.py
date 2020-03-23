@@ -38,7 +38,7 @@ class PythonQueueBasedEventQueue(GenericEventQueue):
                 if envelope.to_vertex is not None:
                     try:
                         envelope.to_vertex.message_received_callback(envelope)
-                    except Exception as ex:
+                    except Exception:
                         logger.exception(
                             f"Event processing failed at {envelope.to_vertex.type}/{envelope.to_vertex.alias}")
                 else:

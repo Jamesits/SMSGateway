@@ -6,4 +6,5 @@ class SMTPMailProcessorBase:
 
     @staticmethod
     @abstractmethod
-    def process(device, session, envelope): raise NotImplementedError
+    def process(device, session, envelope):
+        raise NotImplementedError

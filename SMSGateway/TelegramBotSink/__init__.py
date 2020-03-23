@@ -19,10 +19,10 @@ class TelegramBotSink(GenericVertex):
         super().__init__(alias, object_type, local_config, global_config)
 
         dict_value_normalize(self.local_config, 'message',
-                          'From: {{sender}}\n'
-                          'To: {{receiver}}\n'
-                          'Received at: {{received_at}}\n'
-                          'Content: {{content}}'
+                             'From: {{sender}}\n'
+                             'To: {{receiver}}\n'
+                             'Received at: {{received_at}}\n'
+                             'Content: {{content}}'
                              )
 
         self.bot = telegram.Bot(token=self.local_config['token'])
