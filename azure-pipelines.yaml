@@ -50,8 +50,11 @@ jobs:
 
     - bash: |
         sudo python3 -m pip install --upgrade pip setuptools mypy
+      displayName: 'Install dependencies'
+
+    - bash: |
         sudo python3 setup.py install
-      displayName: 'Install'
+      displayName: 'Install package'
 
     - bash: |
         mypy .
