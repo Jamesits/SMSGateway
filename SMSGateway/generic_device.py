@@ -3,7 +3,7 @@ import typing
 from SMSGateway.generic_vertex import GenericVertex
 
 
-class GenericSource(GenericVertex):
+class GenericDevice(GenericVertex):
     """Device definition"""
     vendor: str
     model: str

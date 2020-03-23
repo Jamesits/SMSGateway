@@ -3,13 +3,17 @@ import logging
 import threading
 import typing
 
-from SMSGateway.DbltekSmsListener.protocol import DbltekSMSServerUDPProtocol
-from SMSGateway.generic_listener import GenericListener
+from SMSGateway.DbltekApiServerConnector.protocol import DbltekSMSServerUDPProtocol
+from SMSGateway.generic_connector import GenericConnector
 
 logger = logging.getLogger(__name__)
 
 
-class DbltekSMSListener(GenericListener):
+class DbltekApiServerConnector(GenericConnector):
+    """
+    Communicate with a Dbltek EasyPhone GOIP device.
+    """
+
     ip: str
     port: int
     loop: asyncio.events.AbstractEventLoop
@@ -40,7 +44,7 @@ class DbltekSMSListener(GenericListener):
         self.server = None
 
     def start(self):
-        assert self._thread is None, 'DbltekSmsListener daemon already running'
+        assert self._thread is None, 'DbltekApiServerConnector daemon already running'
         ready_event = threading.Event()
         self._thread = threading.Thread(target=self._run, args=(ready_event,))
         self._thread.daemon = True
@@ -56,7 +60,7 @@ class DbltekSMSListener(GenericListener):
             task.cancel()
 
     def stop(self):
-        assert self._thread is not None, 'DbltekSmsListener daemon not running'
+        assert self._thread is not None, 'DbltekApiServerConnector daemon not running'
         self.loop.call_soon_threadsafe(self._stop)
         self._thread.join()
         self._thread = None

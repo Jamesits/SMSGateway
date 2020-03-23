@@ -1,34 +1,31 @@
 # defines all the mappings from string to class
 # use all lower letters
-from collections import defaultdict
 import typing
+from collections import defaultdict
 
-from SMSGateway.DbltekSmsListener import DbltekSMSListener
-from SMSGateway.SMPPListener import SMPPListener
-from SMSGateway.SMTPListener import SMTPListener
-from SMSGateway.SMTPSink import SMTPSink
-from SMSGateway.TelegramBotSink import TelegramBotSink
-from SMSGateway.generic_source import GenericSource
+from SMSGateway.DbltekApiServerConnector import DbltekApiServerConnector
+from SMSGateway.SMPPConnector import SMPPConnector
+from SMSGateway.SMTPClientConnector import SMTPClientConnector
+from SMSGateway.SMTPListener import SMTPConnector
+from SMSGateway.TelegramBotConnector import TelegramBotConnector
+from SMSGateway.generic_device import GenericDevice
 from SMSGateway.generic_vertex import GenericVertex
 
 MappingType = typing.Dict[str, typing.Type[GenericVertex]]
 
-source_mapping: MappingType = defaultdict(
-    lambda: GenericSource,
+device_mapping: MappingType = defaultdict(
+    lambda: GenericDevice,
     {
         # overrides
     }
 )
 
-listener_mapping: MappingType = {
-    "smtp": SMTPListener,
-    "dbltek_api_server": DbltekSMSListener,
-    "smpp": SMPPListener,
-}
-
-sink_mapping: MappingType = {
-    "smtp": SMTPSink,
-    "telegram-bot": TelegramBotSink,
+connector_mapping: MappingType = {
+    "smtp-server": SMTPConnector,
+    "dbltek-api-server": DbltekApiServerConnector,
+    "smpp-client": SMPPConnector,
+    "smtp-client": SMTPClientConnector,
+    "telegram-bot": TelegramBotConnector,
 }
 
 filter_mapping: MappingType = {
@@ -36,8 +33,7 @@ filter_mapping: MappingType = {
 }
 
 mapping_mapping: typing.Dict[str, MappingType] = {
-    "source": source_mapping,
-    "listener": listener_mapping,
-    "sink": sink_mapping,
+    "device": device_mapping,
+    "connector": connector_mapping,
     "filter": filter_mapping,
 }

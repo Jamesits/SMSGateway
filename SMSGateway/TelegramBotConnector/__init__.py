@@ -8,13 +8,16 @@ import telegram
 from telegram.ext import Updater, CommandHandler
 
 from SMSGateway.envelope import Envelope
-from SMSGateway.generic_vertex import GenericVertex
+from SMSGateway.generic_connector import GenericConnector
 from SMSGateway.utils import dict_value_normalize, create_mustache_context_from_sms
 
 logger = logging.getLogger(__name__)
 
 
-class TelegramBotSink(GenericVertex):
+class TelegramBotConnector(GenericConnector):
+    """
+    Communicates with Telegram Bot API.
+    """
     def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, typing.Any], global_config: typing.Any):
         super().__init__(alias, object_type, local_config, global_config)
 
@@ -31,7 +34,12 @@ class TelegramBotSink(GenericVertex):
         self.dp.add_handler(CommandHandler("start", self.command_start))
         self.dp.add_handler(CommandHandler("chatid", self.command_get_chat_id))
         self.dp.add_error_handler(self.error_callback)
+
+    def start(self: "TelegramBotConnector"):
         self.updater.start_polling()
+
+    def stop(self: "TelegramBotConnector"):
+        self.updater.stop()
 
     def error_callback(self, update, context):
         """Log Errors caused by Updates."""
@@ -39,7 +47,7 @@ class TelegramBotSink(GenericVertex):
 
     def command_start(self, update, context):
         """Send a message when the command /start is issued."""
-        update.message.reply_text('Hi!')
+        update.message.reply_text(f'SMSGateway received your message!\nYour chat ID is: {update.message.chat.id}')
 
     def command_get_chat_id(self, update, context):
         """Echo the chat id."""

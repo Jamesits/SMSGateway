@@ -4,8 +4,8 @@ import typing
 
 from SMSGateway import config
 from SMSGateway.args import parse_args
+from SMSGateway.generic_connector import GenericConnector
 from SMSGateway.generic_event_queue import PythonQueueBasedEventQueue
-from SMSGateway.generic_listener import GenericListener
 from SMSGateway.generic_vertex import GenericVertex
 from SMSGateway.mapping import mapping_mapping
 from SMSGateway.utils import find_first_existing_file
@@ -17,7 +17,11 @@ edges: typing.List[typing.Tuple[GenericVertex, GenericVertex]] = []
 
 def init_vertex(vertex_type: str, local_config: typing.Dict[str, typing.Any], global_config: typing.Any) -> GenericVertex:
     alias: str = local_config['alias']
-    object_type: str = local_config['type'].lower()
+    object_type: str
+    try:
+        object_type = local_config['type'].lower()
+    except KeyError:
+        object_type = "virtual"
     logger.info(f"Initializing vertex {vertex_type}/{object_type} {alias}")
 
     mapping = mapping_mapping[vertex_type.lower()]
@@ -69,7 +73,7 @@ def main():
     # parse arguments
     config.args = parse_args()
 
-    user_config_file_path = config.args.config
+    user_config_file_path: str = config.args.config
     if len(user_config_file_path) == 0:
         user_config_file_path = find_first_existing_file([
             "/etc/smsgateway/config.toml",
@@ -91,16 +95,11 @@ def main():
     config.queue = PythonQueueBasedEventQueue()
 
     # initialize all the listeners
-    if 'listener' in config.user_config:
-        for local_config in config.user_config['listener']:
-            new_listener = init_vertex('listener', local_config, config)
-            assert isinstance(new_listener, GenericListener)
-            new_listener.start()
-
-    # initialize sinks
-    if 'sink' in config.user_config:
-        for local_config in config.user_config['sink']:
-            init_vertex('sink', local_config, config)
+    if 'connector' in config.user_config:
+        for local_config in config.user_config['connector']:
+            new_connector = init_vertex('connector', local_config, config)
+            assert isinstance(new_connector, GenericConnector)
+            new_connector.start()
 
     # initialize filters
     if 'filter' in config.user_config:
@@ -108,9 +107,9 @@ def main():
             init_vertex('filter', local_config, config)
 
     # initialize sources
-    if 'source' in config.user_config:
-        for local_config in config.user_config['source']:
-            init_vertex('source', local_config, config)
+    if 'device' in config.user_config:
+        for local_config in config.user_config['device']:
+            init_vertex('device', local_config, config)
 
     # create edges
     if 'routes' in config.user_config:
@@ -128,7 +127,7 @@ def main():
         logger.info("^C received, quitting...")
     finally:
         for vertex in vertices:
-            if isinstance(vertex, GenericListener):
+            if isinstance(vertex, GenericConnector):
                 vertex.stop()
 
     logger.info("event loop stopped")

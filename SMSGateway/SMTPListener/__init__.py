@@ -7,7 +7,7 @@ from aiosmtpd.controller import Controller
 from aiosmtpd.smtp import SMTP
 
 from SMSGateway.SMTPListener import SMTPModelDependentProcessor
-from ..generic_listener import GenericListener
+from ..generic_connector import GenericConnector
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +102,7 @@ class SMTPMessageGatewayHandler:
         return '250 Message accepted for delivery'
 
 
-class SMTPListener(GenericListener):
+class SMTPConnector(GenericConnector):
     def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, typing.Any], global_config: typing.Any):
         super().__init__(alias, object_type, local_config, global_config)
         self.controller = SMTPMessageGatewayController(SMTPMessageGatewayHandler(), hostname=local_config["ip"],

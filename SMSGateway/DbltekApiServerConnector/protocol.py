@@ -1,6 +1,6 @@
+import asyncio
 import logging
 import pprint
-import asyncio
 
 logger = logging.getLogger(__name__)
 

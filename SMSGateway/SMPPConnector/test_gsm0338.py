@@ -1,6 +1,7 @@
-import pytest
-import gsm0338
 import binascii
+
+import gsm0338
+import pytest
 
 
 def __do_not_optimize_my_imports():

@@ -8,14 +8,17 @@ from email.mime.text import MIMEText
 import pystache
 
 from SMSGateway.envelope import Envelope
-from SMSGateway.generic_vertex import GenericVertex
+from SMSGateway.generic_connector import GenericConnector
 from SMSGateway.sms import SMS
 from SMSGateway.utils import dict_value_normalize, create_mustache_context_from_sms
 
 logger = logging.getLogger(__name__)
 
 
-class SMTPSink(GenericVertex):
+class SMTPClientConnector(GenericConnector):
+    """
+    Send emails using SMTP.
+    """
     def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, typing.Any], global_config: typing.Any):
         super().__init__(alias, object_type, local_config, global_config)
 

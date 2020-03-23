@@ -12,11 +12,11 @@ import smpplib.consts
 import smpplib.gsm
 
 from SMSGateway.envelope import Envelope
-from SMSGateway.generic_listener import GenericListener
+from SMSGateway.generic_connector import GenericConnector
 from SMSGateway.generic_vertex import GenericVertex
 from SMSGateway.sms import SMS
 
-class_identifier = "SMPPListener"
+class_identifier = "SMPPConnector"
 logger = logging.getLogger(__name__)
 smpp_reconnect_interval_seconds = 0.25
 
@@ -74,7 +74,11 @@ def decode_pdu_message_content(pdu: smpplib.command) -> str:
     return encoded_message
 
 
-class SMPPListener(GenericListener):
+class SMPPConnector(GenericConnector):
+    """
+    Connects to a SMPP server.
+    """
+
     def start(self):
         pass
 
