@@ -15,6 +15,7 @@ from SMSGateway.envelope import Envelope
 from SMSGateway.generic_connector import GenericConnector
 from SMSGateway.generic_vertex import GenericVertex
 from SMSGateway.sms import SMS
+from SMSGateway.utils import dict_value_normalize
 
 class_identifier = "SMPPConnector"
 logger = logging.getLogger(__name__)
@@ -85,7 +86,7 @@ def decode_pdu_message_content(encoding: typing.Optional[int], raw: bytes) -> st
         if callable(decoder):
             encoded_message = decoder(raw)
         else:
-            encoded_message = raw.decode(decoder)
+            encoded_message = raw.decode(decoder, errors="replace")
     except Exception as ex:
         logger.exception(ex)
         # if everything fails, we just spit some octets in hex form
@@ -103,6 +104,7 @@ class SMPPConnector(GenericConnector):
     def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, typing.Any],
                  global_config: typing.Any):
         super().__init__(alias, object_type, local_config, global_config)
+        dict_value_normalize(self.local_config, 'csms_enabled', default=True, override_none=True)
         self.csms_store = {}
 
     def start(self):
@@ -159,25 +161,26 @@ class SMPPConnector(GenericConnector):
             # got new message
             # note: pdu.sequence is just a serial number of current session
 
-            # detect if it is a CSMS (partial message)
-            # https://en.wikipedia.org/wiki/Concatenated_SMS
-            udh_header_length: int = 0
+            udh_header_length: int = -1  # if UDH header does not exist, we do not cut anything
             csms_reference_number: int = 0
             total_parts: int = 0
             sequence: int = 0
-            if len(pdu.short_message) > 6:
-                if int(pdu.short_message[0]) - 2 == int(pdu.short_message[2]):
-                    udh_header_length = pdu.short_message[0]
-                    if pdu.short_message[0] == 0x05 and pdu.short_message[1] == 0x00:
-                        # 8-bit CSMS
-                        csms_reference_number = int(pdu.short_message[3])
-                        total_parts = int(pdu.short_message[4])
-                        sequence = int(pdu.short_message[5])
-                    elif pdu.short_message[0] == 0x06 and pdu.short_message[1] == 0x08:
-                        # 16-bit CSMS
-                        csms_reference_number = int(pdu.short_message[3]) << 8 + int(pdu.short_message[4])
-                        total_parts = int(pdu.short_message[5])
-                        sequence = int(pdu.short_message[6])
+            if self.local_config['csms_enabled']:
+                # detect if it is a CSMS (partial message)
+                # https://en.wikipedia.org/wiki/Concatenated_SMS
+                if len(pdu.short_message) > 6:
+                    if int(pdu.short_message[0]) - 2 == int(pdu.short_message[2]):
+                        udh_header_length = pdu.short_message[0]
+                        if pdu.short_message[0] == 0x05 and pdu.short_message[1] == 0x00:
+                            # 8-bit CSMS
+                            csms_reference_number = int(pdu.short_message[3])
+                            total_parts = int(pdu.short_message[4])
+                            sequence = int(pdu.short_message[5])
+                        elif pdu.short_message[0] == 0x06 and pdu.short_message[1] == 0x08:
+                            # 16-bit CSMS
+                            csms_reference_number = int(pdu.short_message[3]) << 8 + int(pdu.short_message[4])
+                            total_parts = int(pdu.short_message[5])
+                            sequence = int(pdu.short_message[6])
 
             sender = decode_pdu_addr(pdu.source_addr)
             receiver = decode_pdu_addr(pdu.destination_addr)  # usually '0'
