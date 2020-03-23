@@ -64,19 +64,22 @@ class SMPPListener(GenericListener):
             while True:
                 logger.info(f"SMPP connect to {adjacent_vertex.alias}")
                 try:
-                    # we must recreate the client every time, otherwise
+                    # we must recreate the client every time, otherwise we'll get
                     # ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
                     adjacent_vertex.c[class_identifier]['client'] = smpplib.client.Client(
                         adjacent_vertex.local_config["ip"],
-                        adjacent_vertex.local_config["port"])
+                        adjacent_vertex.local_config["port"]
+                    )
                     adjacent_vertex.c[class_identifier]['client'].set_message_sent_handler(
-                        self.smpp_message_send_handler)
+                        self.smpp_message_send_handler
+                    )
                     adjacent_vertex.c[class_identifier]['client'].set_message_received_handler(
-                        self.smpp_message_receive_handler)
+                        self.smpp_message_receive_handler
+                    )
                     adjacent_vertex.c[class_identifier]['client'].connect()
                     adjacent_vertex.c[class_identifier]['client'].bind_transceiver(
                         system_id=adjacent_vertex.local_config["username"],
-                        password=adjacent_vertex.local_config["password"]
+                        password=adjacent_vertex.local_config["password"],
                     )
                     adjacent_vertex.c[class_identifier]['client'].listen()
                 except smpplib.exceptions.PDUError as ex:
@@ -89,9 +92,9 @@ class SMPPListener(GenericListener):
                 # wait and reconnect
                 sleep(smpp_reconnect_interval_seconds)
 
-        adjacent_vertex.smpp_thread_func = smpp_thread_func
-        adjacent_vertex.smpp_client_listen_thread = Thread(target=adjacent_vertex.smpp_thread_func)
-        adjacent_vertex.smpp_client_listen_thread.start()
+        adjacent_vertex.c[class_identifier]['smpp_thread_func'] = smpp_thread_func
+        adjacent_vertex.c[class_identifier]['smpp_client_listen_thread'] = Thread(target=smpp_thread_func)
+        adjacent_vertex.c[class_identifier]['smpp_client_listen_thread'].start()
 
     def smpp_message_send_handler(self, pdu: smpplib.command):
         logger.info(f"sent {pdu.sequence} {pdu.message_id}")
@@ -130,13 +133,13 @@ class SMPPListener(GenericListener):
             )
 
             # get the sending device object
-            to_vertex = None
+            to_vertex: typing.Optional[GenericVertex] = None
             for device in self.out_edge_adjacent_vertices:
                 if device.c[class_identifier]['client'] == pdu.client:
                     to_vertex = device
                     break
 
-            envelope = Envelope(
+            envelope: Envelope = Envelope(
                 from_vertex=self,
                 to_vertex=to_vertex,
                 sms=new_sms

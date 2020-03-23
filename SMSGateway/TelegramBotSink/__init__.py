@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class TelegramBotSink(GenericVertex):
-    def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, any], global_config: any):
+    def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, typing.Any], global_config: typing.Any):
         super().__init__(alias, object_type, local_config, global_config)
 
         dict_value_normalize(self.local_config, 'message',

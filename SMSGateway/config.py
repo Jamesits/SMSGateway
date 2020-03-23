@@ -4,8 +4,8 @@ import toml
 
 from SMSGateway.generic_event_queue import GenericEventQueue
 
-args: any
-user_config: typing.Dict[str, any] = {}
+args: typing.Any
+user_config: typing.MutableMapping[str, typing.Any] = {}
 queue: GenericEventQueue
 
 

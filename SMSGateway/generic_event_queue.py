@@ -28,7 +28,10 @@ class PythonQueueBasedEventQueue(GenericEventQueue):
         self.queue_poll_interval_seconds = 0.25
 
     def enqueue(self, envelope: Envelope):
-        logger.info(f"Got message from {envelope.from_vertex.alias}")
+        if envelope.from_vertex is not None:
+            logger.debug(f"Got message from {envelope.from_vertex.alias}")
+        else:
+            logger.debug(f"Got message from nowhere")
         self.queue.put_nowait(envelope)
 
     def event_loop_sync(self):
@@ -42,6 +45,6 @@ class PythonQueueBasedEventQueue(GenericEventQueue):
                         logger.exception(
                             f"Event processing failed at {envelope.to_vertex.type}/{envelope.to_vertex.alias}")
                 else:
-                    logger.warning(f"Queue received message with empty destination")
+                    logger.warning(f"Queue received message with empty destination, discarding")
             except queue.Empty:
                 sleep(self.queue_poll_interval_seconds)

@@ -1,5 +1,6 @@
 import logging
 import pprint
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -7,7 +8,7 @@ logger = logging.getLogger(__name__)
 # https://github.com/iivorait/FSG-GOIP-snippet/blob/master/doc/goip_sms_Interface_en.pdf
 # TODO: implement anti-reply
 # (cache the latest few messages and discard them / resend reply in case UDP packet is lost on the route)
-class DbltekSMSServerUDPProtocol:
+class DbltekSMSServerUDPProtocol(asyncio.BaseProtocol):
     def __init__(self):
         self.transport = None
 

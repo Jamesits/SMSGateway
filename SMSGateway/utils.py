@@ -5,9 +5,9 @@ from SMSGateway.sms import SMS
 
 
 def dict_value_normalize(
-        d: typing.Dict[str, any],
+        d: typing.Dict[str, typing.Any],
         key: str,
-        default: any = None,
+        default: typing.Any = None,
         override_none: bool = False,
         to_lower: bool = False,
         trim: bool = False,
@@ -26,7 +26,7 @@ def dict_value_normalize(
             d[key] = d[key].strip()
 
 
-def create_mustache_context_from_sms(sms: SMS):
+def create_mustache_context_from_sms(sms: SMS) -> typing.Dict[str, str]:
     return {
         'sender': sms.sender,
         'receiver': sms.receiver,

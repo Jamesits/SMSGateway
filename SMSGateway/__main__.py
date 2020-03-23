@@ -15,9 +15,9 @@ vertices: typing.List[GenericVertex] = []
 edges: typing.List[typing.Tuple[GenericVertex, GenericVertex]] = []
 
 
-def init_vertex(vertex_type: str, local_config: typing.Dict[str, any], global_config: any) -> GenericVertex:
-    alias = local_config['alias']
-    object_type = local_config['type'].lower()
+def init_vertex(vertex_type: str, local_config: typing.Dict[str, typing.Any], global_config: typing.Any) -> GenericVertex:
+    alias: str = local_config['alias']
+    object_type: str = local_config['type'].lower()
     logger.info(f"Initializing vertex {vertex_type}/{object_type} {alias}")
 
     mapping = mapping_mapping[vertex_type.lower()]

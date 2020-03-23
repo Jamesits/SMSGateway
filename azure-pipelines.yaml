@@ -57,7 +57,7 @@ jobs:
       displayName: 'Install package'
 
     - bash: |
-        mypy .
+        mypy --ignore-missing-imports .
       displayName: 'Mypy check'
       continueOnError: true
 

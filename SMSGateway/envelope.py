@@ -10,6 +10,6 @@ if typing.TYPE_CHECKING:
 @dataclasses.dataclass
 class Envelope:
     """A message in the global event queue"""
-    from_vertex: "GenericVertex"
-    to_vertex: "GenericVertex"
+    from_vertex: typing.Optional["GenericVertex"]
+    to_vertex: typing.Optional["GenericVertex"]
     sms: "SMS"

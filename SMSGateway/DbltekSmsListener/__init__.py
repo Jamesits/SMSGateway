@@ -10,7 +10,14 @@ logger = logging.getLogger(__name__)
 
 
 class DbltekSMSListener(GenericListener):
-    def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, any], global_config: any):
+    ip: str
+    port: int
+    loop: asyncio.events.AbstractEventLoop
+    server: typing.Any  # FIXME
+    thread: typing.Optional[threading.Thread]
+    _thread_exception: typing.Optional[Exception]
+
+    def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, typing.Any], global_config: typing.Any):
         super().__init__(alias, object_type, local_config, global_config)
         self.ip = local_config["ip"]
         self.port = local_config["port"]

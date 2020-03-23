@@ -14,13 +14,13 @@ class GenericVertex(ABC):
     """Generic node in the routing graph data structure"""
     alias: str
     type: str
-    local_config: typing.Dict[str, any]
-    global_config: any
+    local_config: typing.Dict[str, typing.Any]
+    global_config: typing.Any
     in_edge_adjacent_vertices: typing.List["GenericVertex"]
     out_edge_adjacent_vertices: typing.List["GenericVertex"]
-    c: typing.Dict[str, typing.Dict]  # for any custom data that other modules need
+    c: typing.Dict[str, typing.Dict]  # for typing.Any custom data that other modules need
 
-    def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, any], global_config: any):
+    def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, typing.Any], global_config: typing.Any):
         self.alias = alias
         self.type = object_type
         self.local_config = local_config

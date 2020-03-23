@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class NewSMTP(SMTP):
     @asyncio.coroutine
     def smtp_AUTH(self, arg):
-        '''Authenticates user with any credential'''
+        '''Authenticates user with typing.Any credential'''
         argv = str(arg).split(" ", 2)
         if argv[0] == 'PLAIN':  # password-only auth
             if len(argv) == 1:  # we have to ask for password
@@ -103,7 +103,7 @@ class SMTPMessageGatewayHandler:
 
 
 class SMTPListener(GenericListener):
-    def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, any], global_config: any):
+    def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, typing.Any], global_config: typing.Any):
         super().__init__(alias, object_type, local_config, global_config)
         self.controller = SMTPMessageGatewayController(SMTPMessageGatewayHandler(), hostname=local_config["ip"],
                                                        port=local_config["port"], enable_SMTPUTF8=True)
