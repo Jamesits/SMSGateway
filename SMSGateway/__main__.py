@@ -16,12 +16,20 @@ edges: typing.List[typing.Tuple[GenericVertex, GenericVertex]] = []
 
 
 def init_vertex(vertex_type: str, local_config: typing.Dict[str, typing.Any], global_config: typing.Any) -> GenericVertex:
+    """
+    Initialize a GenericVertex object from a config block.
+
+    :param vertex_type: the vertex subclass defined in the config: [[connector]], [[device]] or [[filter]]
+    :param local_config: the vertex config
+    :param global_config: the global config object
+    :return: the initialized GenericVertex object
+    """
     alias: str = local_config['alias']
     object_type: str
     try:
         object_type = local_config['type'].lower()
     except KeyError:
-        object_type = "virtual"
+        object_type = "virtual"  # mainly for devices; they usually don't need a type
     logger.info(f"Initializing vertex {vertex_type}/{object_type} {alias}")
 
     mapping = mapping_mapping[vertex_type.lower()]
@@ -37,6 +45,13 @@ def init_vertex(vertex_type: str, local_config: typing.Dict[str, typing.Any], gl
 
 
 def init_edge(vertex_from_alias: str, vertex_to_alias: str):
+    """
+    Initialize a connection between two vertices. Connections are directional.
+
+    :param vertex_from_alias: the 'alias' of the 'from' vertex
+    :param vertex_to_alias: the 'alias' of the 'to' vertex
+    :return: the edge object
+    """
     logger.info(f"Initializing edge {vertex_from_alias} -> {vertex_to_alias}")
     # find the vertices we need
     vertex_from = None
@@ -64,6 +79,13 @@ def init_edge(vertex_from_alias: str, vertex_to_alias: str):
 
 
 def main():
+    """
+    The main procedure.
+
+    :return: None
+    """
+
+    # early configure logging output
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s|%(name)-26s[%(levelname)s] %(message)s'
@@ -73,11 +95,19 @@ def main():
     # parse arguments
     config.args = parse_args()
 
+    # search for user config file path
     user_config_file_path: str = config.args.config
     if len(user_config_file_path) == 0:
         user_config_file_path = find_first_existing_file([
+            # *nix
             "/etc/smsgateway/config.toml",
-            "./config.toml",
+            # Windows
+            os.path.join(os.environ.get('LOCALAPPDATA', ''), "smsgateway", "config.toml"),
+            os.path.join(os.environ.get('APPDATA', ''), "smsgateway", "config.toml"),
+            os.path.join(os.environ.get('PROGRAMDATA', ''), "smsgateway", "config.toml"),
+            # current dir
+            os.path.join('.', "config.toml"),
+            # config file located at the root of project directory
             os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "config.toml"),
         ])
     if len(user_config_file_path) == 0:
