@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class GenericEventQueue(ABC):
+    """The global event queue interface"""
     def __init__(self):
         pass
 

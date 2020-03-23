@@ -6,7 +6,6 @@ from SMSGateway import config
 from SMSGateway.args import *
 from SMSGateway.generic_event_queue import PythonQueueBasedEventQueue
 from SMSGateway.generic_listener import GenericListener
-from SMSGateway.generic_source import GenericSource
 from SMSGateway.generic_vertex import GenericVertex
 from SMSGateway.mapping import *
 from SMSGateway.utils import find_first_existing_file
@@ -21,22 +20,13 @@ def init_vertex(vertex_type: str, local_config: typing.Dict[str, any], global_co
     object_type = local_config['type'].lower()
     logger.info(f"Initializing vertex {vertex_type}/{object_type} {alias}")
 
-    if vertex_type == 'source':
-        # source nodes doesn't need mapping; they are plain config nodes
-        new_vertex = GenericSource(
-            alias,
-            object_type,
-            local_config,
-            global_config,
-        )
-    else:
-        mapping = mapping_mapping[vertex_type.lower()]
-        new_vertex = mapping[object_type](
-            alias,
-            object_type,
-            local_config,
-            global_config,
-        )
+    mapping = mapping_mapping[vertex_type.lower()]
+    new_vertex = mapping[object_type](
+        alias,
+        object_type,
+        local_config,
+        global_config,
+    )
 
     vertices.append(new_vertex)
     return new_vertex

@@ -9,7 +9,7 @@ from telegram.ext import Updater, CommandHandler
 
 from SMSGateway.envelope import Envelope
 from SMSGateway.generic_vertex import GenericVertex
-from SMSGateway.utils import dict_fill_default, create_mustache_context_from_sms
+from SMSGateway.utils import dict_value_normalize, create_mustache_context_from_sms
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +18,12 @@ class TelegramBotSink(GenericVertex):
     def __init__(self, alias: str, object_type: str, local_config: typing.Dict[str, any], global_config: any):
         super().__init__(alias, object_type, local_config, global_config)
 
-        dict_fill_default(self.local_config, 'message',
+        dict_value_normalize(self.local_config, 'message',
                           'From: {{sender}}\n'
                           'To: {{receiver}}\n'
                           'Received at: {{received_at}}\n'
                           'Content: {{content}}'
-                          )
+                             )
 
         self.bot = telegram.Bot(token=self.local_config['token'])
         self.updater = Updater(self.local_config['token'], use_context=True)

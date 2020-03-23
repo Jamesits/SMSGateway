@@ -10,7 +10,7 @@ import pystache
 from SMSGateway.envelope import Envelope
 from SMSGateway.generic_vertex import GenericVertex
 from SMSGateway.sms import SMS
-from SMSGateway.utils import dict_fill_default, create_mustache_context_from_sms
+from SMSGateway.utils import dict_value_normalize, create_mustache_context_from_sms
 
 logger = logging.getLogger(__name__)
 
@@ -20,21 +20,29 @@ class SMTPSink(GenericVertex):
         super().__init__(alias, object_type, local_config, global_config)
 
         # fill default config
-        dict_fill_default(self.local_config, 'port', 465)
-        dict_fill_default(self.local_config, 'encryption', 'tls')
-        self.local_config['encryption'] = self.local_config['encryption'].lower()
-        dict_fill_default(self.local_config, 'from_address', local_config['username'])
-        dict_fill_default(self.local_config, 'subject', "New SMS from {{sender}}")
-        dict_fill_default(self.local_config, 'body_plaintext',
-                          'From: {{sender}}\n'
-                          'To: {{receiver}}\n'
-                          'Received at: {{received_at}}\n'
-                          'Content: {{content}}\n'
-                          '\n\n'
-                          'SMSGateway'
-                          )
+        dict_value_normalize(self.local_config, 'encryption', 'tls', to_lower=True, trim=True)
+        if self.local_config['encryption'] == 'ssl': self.local_config['encryption'] = 'tls'
+        if self.local_config['encryption'] == 'tls':
+            default_port = 465
+        elif self.local_config['encryption'] == 'starttls':
+            default_port = 587
+        elif self.local_config['encryption'] == 'plaintext':
+            default_port = 25
+        else:
+            raise SyntaxError(f"SMTP unknown encryption method {self.local_config['encryption']}")
+        dict_value_normalize(self.local_config, 'port', default_port)
+        dict_value_normalize(self.local_config, 'from_address', local_config['username'])
+        dict_value_normalize(self.local_config, 'subject', "New SMS from {{sender}}")
+        dict_value_normalize(self.local_config, 'body_plaintext',
+                             'From: {{sender}}\n'
+                             'To: {{receiver}}\n'
+                             'Received at: {{received_at}}\n'
+                             'Content: {{content}}\n'
+                             '\n\n'
+                             'SMSGateway'
+                             )
 
-    def __get_ssl_context(self):
+    def __get_ssl_context(self) -> ssl.SSLContext:
         return ssl.create_default_context()
 
     def __get_smtp_client_context_manager(self) -> smtplib.SMTP:
@@ -43,7 +51,7 @@ class SMTPSink(GenericVertex):
                 host=self.local_config['server'],
                 port=self.local_config['port'],
             )
-        elif self.local_config['encryption'] == 'ssl' or self.local_config['encryption'] == 'tls':
+        elif self.local_config['encryption'] == 'tls':
             server = smtplib.SMTP_SSL(
                 host=self.local_config['server'],
                 port=self.local_config['port'],
