@@ -69,7 +69,7 @@ jobs:
       continueOnError: true
 
     - script: |
-        flake8 .
+        flake8 --ignore=E501,F401 .
       displayName: 'flake8 check'
       continueOnError: true
 
