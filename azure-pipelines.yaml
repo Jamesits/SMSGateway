@@ -49,11 +49,11 @@ jobs:
         versionSpec: '$(python.version)'
 
     - bash: |
-        sudo -EH python3 -m pip install --upgrade pip setuptools mypy flake8 pytest pytest-cov
+        sudo -EH env "PATH=$PATH" python3 -m pip install --upgrade pip setuptools mypy flake8 pytest pytest-cov
       displayName: 'Install dependencies'
 
     - bash: |
-        sudo -EH python3 setup.py install
+        sudo -EH env "PATH=$PATH" python3 setup.py install
       displayName: 'Install package'
 
     - bash: |
