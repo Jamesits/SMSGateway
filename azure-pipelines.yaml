@@ -7,6 +7,13 @@ trigger:
   paths:
     exclude: [ "README.md" ]
 
+pr:
+  autoCancel: true
+  branches:
+    include: [ "*" ]
+  paths:
+    exclude: [ "README.md" ]
+
 jobs:
   - job: docker_ci
     displayName: "Docker CI"
